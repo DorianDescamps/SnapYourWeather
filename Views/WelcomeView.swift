@@ -5,15 +5,11 @@
 //  Created by etudiant on 10/12/2024.
 //
 
-import Foundation
-
 import SwiftUI
 
 struct WelcomeView: View {
     let email: String
-    @ObservedObject var userSession: UserSession
-    @Binding var navigationPath: NavigationPath
-
+    @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showSettings = false
 
     var body: some View {
@@ -32,7 +28,7 @@ struct WelcomeView: View {
             }
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView(userSession: userSession, navigationPath: $navigationPath)
+            SettingsView()
         }
         .navigationBarBackButtonHidden(true)
     }
