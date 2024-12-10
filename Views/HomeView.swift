@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  HomeView.swift
 //  SnapYourWeather
 //
 //  Created by etudiant on 10/12/2024.
@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct HomeView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var navigationPath = NavigationPath()
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
             if let user = authViewModel.loggedInUserEmail {
-                WelcomeView(email: user)
+                MainView(email: user)
             } else {
                 VStack(spacing: 20) {
                     Button("Connexion") {

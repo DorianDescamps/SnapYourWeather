@@ -1,5 +1,5 @@
 //
-//  WelcomeView.swift
+//  MainView.swift
 //  SnapYourWeather
 //
 //  Created by etudiant on 10/12/2024.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct WelcomeView: View {
+struct MainView: View {
     let email: String
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showSettings = false
