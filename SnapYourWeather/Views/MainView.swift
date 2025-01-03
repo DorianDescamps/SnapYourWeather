@@ -9,15 +9,28 @@ import SwiftUI
 
 struct MainView: View {
     let email: String
-    @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showSettings = false
 
     var body: some View {
-        VStack {
-            Text("Bienvenue, \(email)!")
-                .font(.largeTitle)
-                .padding()
+        TabView {
+            CameraView()
+                .tabItem {
+                    Label("Caméra", systemImage: "camera")
+                }
+
+            VStack {
+                Text("Coucou")
+                    .font(.largeTitle)
+                Text("Utilisateur : \(email)")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+            }
+            .tabItem {
+                Label("Message", systemImage: "message")
+            }
         }
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+        .edgesIgnoringSafeArea(.all)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
@@ -30,6 +43,5 @@ struct MainView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
-        .navigationBarBackButtonHidden(true)
     }
 }
