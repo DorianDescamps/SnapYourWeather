@@ -13,8 +13,8 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            if let user = authViewModel.loggedInUserEmail {
-                MainView(email: user)
+            if let token = authViewModel.loggedInUserEmail {
+                MainView(token: token) // Transmettre le token
             } else {
                 VStack(spacing: 20) {
                     Button("Connexion") {

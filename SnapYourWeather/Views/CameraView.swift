@@ -27,7 +27,6 @@ class CameraViewController: UIViewController {
         requestCameraAccess()
     }
 
-    /// Demande l'accès à la caméra et configure la caméra si l'utilisateur donne son autorisation.
     private func requestCameraAccess() {
         AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
             DispatchQueue.main.async {
@@ -40,7 +39,6 @@ class CameraViewController: UIViewController {
         }
     }
 
-    /// Configure la caméra et la prévisualisation.
     private func setupCamera() {
         captureSession = AVCaptureSession()
         captureSession?.sessionPreset = .photo
@@ -67,7 +65,6 @@ class CameraViewController: UIViewController {
         captureSession.startRunning()
     }
 
-    /// Affiche une alerte si l'utilisateur refuse l'accès à la caméra.
     private func showPermissionAlert() {
         let alert = UIAlertController(
             title: "Permission refusée",
@@ -81,5 +78,21 @@ class CameraViewController: UIViewController {
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         videoPreviewLayer?.frame = view.layer.bounds
+    }
+}
+
+struct CameraScreen: View {
+    var body: some View {
+        ZStack {
+            CameraView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.black)
+
+            if ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil {
+                Text("Caméra indisponible dans le simulateur")
+                    .foregroundColor(.white)
+            }
+        }
+        .navigationBarTitle("Caméra", displayMode: .inline)
     }
 }

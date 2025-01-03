@@ -8,38 +8,32 @@
 import SwiftUI
 
 struct MainView: View {
-    let email: String
+    let token: String
+    @State private var selectedTab: Tab = .camera
     @State private var showSettings = false
 
-    var body: some View {
-        TabView {
-            ZStack {
-                CameraView()
-                    .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.9)
-                    .background(Color.black)
-                    .cornerRadius(10)
+    enum Tab {
+        case camera
+        case map
+    }
 
-                if ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil {
-                    Text("Caméra indisponible dans le simulateur")
-                        .foregroundColor(.white)
-                }
+    var body: some View {
+        ZStack {
+            TabView(selection: $selectedTab) {
+                CameraScreen()
+                    .tag(Tab.camera)
+
+                MapView()
+                    .tag(Tab.map)
             }
-            .tabItem {
-                Label("Caméra", systemImage: "camera")
-            }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
 
             VStack {
-                Text("Coucou")
-                    .font(.largeTitle)
-                Text("Utilisateur : \(email)")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-            .tabItem {
-                Label("Message", systemImage: "message")
+                Spacer()
+                NavigationBar(selectedTab: $selectedTab)
             }
         }
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+        .edgesIgnoringSafeArea(.bottom)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
@@ -51,6 +45,9 @@ struct MainView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+        }
+        .onAppear {
+            print("Utilisateur connecté avec le token : \(token)")
         }
     }
 }
