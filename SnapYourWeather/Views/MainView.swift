@@ -13,10 +13,20 @@ struct MainView: View {
 
     var body: some View {
         TabView {
-            CameraView()
-                .tabItem {
-                    Label("Caméra", systemImage: "camera")
+            ZStack {
+                CameraView()
+                    .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.9)
+                    .background(Color.black)
+                    .cornerRadius(10)
+
+                if ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil {
+                    Text("Caméra indisponible dans le simulateur")
+                        .foregroundColor(.white)
                 }
+            }
+            .tabItem {
+                Label("Caméra", systemImage: "camera")
+            }
 
             VStack {
                 Text("Coucou")
@@ -30,7 +40,6 @@ struct MainView: View {
             }
         }
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-        .edgesIgnoringSafeArea(.all)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
