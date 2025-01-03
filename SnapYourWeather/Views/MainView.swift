@@ -18,9 +18,8 @@ struct MainView: View {
     }
 
     var body: some View {
-        ZStack {
             TabView(selection: $selectedTab) {
-                CameraScreen()
+                CameraEntry()
                     .tag(Tab.camera)
 
                 MapView()
@@ -28,26 +27,22 @@ struct MainView: View {
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
 
-            VStack {
-                Spacer()
-                NavigationBar(selectedTab: $selectedTab)
-            }
-        }
-        .edgesIgnoringSafeArea(.bottom)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: {
-                    showSettings = true
-                }) {
-                    Image(systemName: "gearshape")
+        NavigationBar(selectedTab: $selectedTab)
+            .edgesIgnoringSafeArea(.bottom)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showSettings = true
+                    }) {
+                        Image(systemName: "gearshape")
+                    }
                 }
             }
-        }
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
-        }
-        .onAppear {
-            print("Utilisateur connecté avec le token : \(token)")
-        }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+            }
+            .onAppear {
+                print("Utilisateur connecté avec le token : \(token)")
+            }
     }
 }

@@ -81,7 +81,7 @@ class CameraViewController: UIViewController {
     }
 }
 
-struct CameraScreen: View {
+struct CameraEntry: View {
     var body: some View {
         ZStack {
             CameraView()
