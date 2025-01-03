@@ -8,29 +8,32 @@
 import SwiftUI
 
 struct MainView: View {
-    let email: String
+    let token: String
+    @State private var selectedTab: Tab = .camera
     @State private var showSettings = false
 
+    enum Tab {
+        case camera
+        case map
+    }
+
     var body: some View {
-        TabView {
-            CameraView()
-                .tabItem {
-                    Label("Caméra", systemImage: "camera")
-                }
+        ZStack {
+            TabView(selection: $selectedTab) {
+                CameraScreen()
+                    .tag(Tab.camera)
+
+                MapView()
+                    .tag(Tab.map)
+            }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
 
             VStack {
-                Text("Coucou")
-                    .font(.largeTitle)
-                Text("Utilisateur : \(email)")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-            .tabItem {
-                Label("Message", systemImage: "message")
+                Spacer()
+                NavigationBar(selectedTab: $selectedTab)
             }
         }
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-        .edgesIgnoringSafeArea(.all)
+        .edgesIgnoringSafeArea(.bottom)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
@@ -42,6 +45,9 @@ struct MainView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+        }
+        .onAppear {
+            print("Utilisateur connecté avec le token : \(token)")
         }
     }
 }
