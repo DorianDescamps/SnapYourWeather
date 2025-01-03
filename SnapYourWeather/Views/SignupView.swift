@@ -22,6 +22,8 @@ struct SignupView: View {
 
             TextField("Email", text: $email)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+                // Minuscules seulement
                 .autocapitalization(.none)
 
             SecureField("Mot de passe", text: $password)

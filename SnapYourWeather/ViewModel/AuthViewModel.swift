@@ -33,15 +33,19 @@ class AuthViewModel: ObservableObject {
     func signup(email: String, password: String, pseudo: String) -> String? {
         let normalizedEmail = email.lowercased()
         
-        guard pseudo.count >= 4 else {
+        guard pseudo.count >= 1 && pseudo.count <= 50 else {
             return "Le pseudo doit contenir au moins 4 caractères."
+        }
+        
+        guard email.count <= 320 else {
+            return "L'email ne doit pas dépasser 320 caractères."
         }
         
         guard isValidEmail(normalizedEmail) else {
             return "Veuillez entrer une adresse email valide."
         }
         
-        guard password.count >= 6 else {
+        guard password.count >= 8 else {
             return "Le mot de passe doit contenir au moins 6 caractères."
         }
         
