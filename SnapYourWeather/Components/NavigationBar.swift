@@ -52,7 +52,7 @@ struct NavigationBar: View {
 
             Spacer()
         }
-        .frame(height: 80)
+        .frame(height: 60)
         .background(Color.white)
     }
 }
