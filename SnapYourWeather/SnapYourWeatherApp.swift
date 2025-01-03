@@ -25,7 +25,7 @@ struct SnapYourWeatherApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeView()
                 .environmentObject(authViewModel)
         }
         .modelContainer(sharedModelContainer)
