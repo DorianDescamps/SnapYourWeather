@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct HomeView: View {
+struct EntryView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var navigationPath = NavigationPath()
 
