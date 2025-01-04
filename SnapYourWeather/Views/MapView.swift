@@ -11,7 +11,7 @@ import MapKit
 struct MapView: View {
     @State private var cameraPosition = MapCameraPosition.region(
         MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 48.8566, longitude: 2.3522), // Coordonnées de Paris
+            center: CLLocationCoordinate2D(latitude: 48.8566, longitude: 2.3522),
             span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
         )
     )
@@ -30,17 +30,6 @@ struct MapView: View {
                 MapCompass()
             }
             .mapStyle(.standard(elevation: .realistic))
-            .edgesIgnoringSafeArea(.all)
-
-            VStack {
-                Spacer()
-                Text("Carte")
-                    .font(.headline)
-                    .padding()
-                    .background(Color.white.opacity(0.8))
-                    .cornerRadius(10)
-                    .padding(.bottom, 20)
-            }
         }
         .navigationBarTitle("Carte", displayMode: .inline)
     }
