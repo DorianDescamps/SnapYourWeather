@@ -37,7 +37,7 @@ struct MainView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showSettings) { // Sert a la feuille apprante
+            .sheet(isPresented: $showSettings) {
                 SettingsView()
             }
             .onAppear {
