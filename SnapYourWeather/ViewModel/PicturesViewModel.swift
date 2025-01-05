@@ -1,148 +1,103 @@
-//
-//  PicturesViewModel.swift
-//  SnapYourWeather
-//
-//  Created by etudiant on 05/01/2025.
-//
-
 import Foundation
-import Combine
 import SwiftUI
+import Combine
 
 class PicturesViewModel: ObservableObject {
-    // Liste des photos récupérées
-    @Published var pictures: [Picture] = []
     
-    // Pour afficher les messages d'erreur
+    @Published var pictures: [Picture] = []
     @Published var errorMessage: String = ""
     
-    // AuthViewModel pour récupérer le token
     private let authViewModel: AuthViewModel
     
-    // MARK: - API Endpoints
-    enum APIEndpoint: String {
-        case fetchPictures = "/pictures"
-    }
-    
-    // MARK: - Initialisation
     init(authViewModel: AuthViewModel) {
         self.authViewModel = authViewModel
     }
     
-    // MARK: - Méthode générique pour les requêtes réseau
-    private func performRequest(
-        endpoint: APIEndpoint,
-        method: String,
-        token: String? = nil,
-        body: [String: Any]? = nil,
-        pathComponent: String? = nil,
-        completion: @escaping (Data?, HTTPURLResponse?, String?) -> Void
-    ) {
-        var endpointURL = EnvironmentConfig.baseURL + endpoint.rawValue
-        if let pathComponent = pathComponent {
-            endpointURL += "/\(pathComponent)"
+    func fetchPictures() {
+        guard let token = authViewModel.authToken else {
+            self.errorMessage = "Token introuvable, veuillez vous reconnecter."
+            return
         }
         
-        guard let url = URL(string: endpointURL) else {
-            completion(nil, nil, "URL invalide.")
+        guard let url = URL(string: EnvironmentConfig.baseURL + "/pictures") else {
+            self.errorMessage = "URL invalide."
             return
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = method
-        
-        // En-têtes HTTP
-        if let token = token {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Corps de la requête
-        if let body = body {
-            do {
-                request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
-            } catch {
-                completion(nil, nil, "Erreur lors de la sérialisation du JSON : \(error.localizedDescription)")
-                return
-            }
-        }
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    completion(nil, nil, "Erreur réseau : \(error.localizedDescription)")
+                    self.errorMessage = "Erreur réseau : \(error.localizedDescription)"
                     return
                 }
                 
-                guard let httpResponse = response as? HTTPURLResponse else {
+                guard let httpResponse = response as? HTTPURLResponse,
+                      let data = data else {
+                    self.errorMessage = "Réponse serveur invalide."
                     return
                 }
                 
-                completion(data, httpResponse, nil)
+                guard httpResponse.statusCode == 200 else {
+                    self.errorMessage = "Erreur inattendue (code \(httpResponse.statusCode))."
+                    return
+                }
+                
+                do {
+                    if let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                       let datas = jsonObject["datas"] as? [[String: Any]] {
+                        // Convertir JSON en tableau de Picture
+                        let jsonData = try JSONSerialization.data(withJSONObject: datas, options: [])
+                        let decodedPictures = try JSONDecoder().decode([Picture].self, from: jsonData)
+                        self.pictures = decodedPictures
+                    } else {
+                        self.errorMessage = "Format de réponse inattendu."
+                    }
+                } catch {
+                    self.errorMessage = "Impossible de parser la réponse JSON : \(error.localizedDescription)"
+                }
             }
         }.resume()
     }
     
-    // MARK: - Récupérer la liste des photos
-    func fetchPictures(completion: @escaping (Bool, [Picture]?, String?) -> Void) {
+    func fetchPictureImage(fileName: String, completion: @escaping (Data?) -> Void) {
         guard let token = authViewModel.authToken else {
-            completion(false, nil, "Token introuvable. Veuillez vous reconnecter.")
+            self.errorMessage = "Token introuvable, veuillez vous reconnecter."
+            completion(nil)
             return
         }
         
-        performRequest(endpoint: .fetchPictures, method: "GET", token: token) { data, response, error in
-            if let error = error {
-                completion(false, nil, error)
-                return
-            }
-            
-            guard let httpResponse = response, let data = data else {
-                return
-            }
-            
-            switch httpResponse.statusCode {
-            case 200:
-                do {
-                    if let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                       let datas = jsonObject["datas"] as? [[String: Any]] {
-                        let jsonData = try JSONSerialization.data(withJSONObject: datas, options: [])
-                        let decodedPictures = try JSONDecoder().decode([Picture].self, from: jsonData)
-                        completion(true, decodedPictures, nil)
-                    } else {
-                        completion(false, nil, "Format de réponse inattendu.")
-                    }
-                } catch {
-                    completion(false, nil, "Impossible de parser la réponse JSON : \(error.localizedDescription)")
+        guard let url = URL(string: EnvironmentConfig.baseURL + "/pictures/\(fileName)") else {
+            self.errorMessage = "URL invalide pour la photo."
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.errorMessage = "Erreur réseau pour l'image : \(error.localizedDescription)"
+                    completion(nil)
+                    return
                 }
-            default:
-                completion(false, nil, "Erreur inattendue (code \(httpResponse.statusCode)).")
+                
+                guard let httpResponse = response as? HTTPURLResponse,
+                      let data = data,
+                      httpResponse.statusCode == 200 else {
+                    self.errorMessage = "Impossible de récupérer l'image (code ou réponse invalide)."
+                    completion(nil)
+                    return
+                }
+                
+                completion(data)
             }
-        }
-    }
-    
-    // MARK: - Récupérer une image spécifique
-    func fetchPictureImage(fileName: String, completion: @escaping (Bool, Data?, String?) -> Void) {
-        guard let token = authViewModel.authToken else {
-            completion(false, nil, "Token introuvable. Veuillez vous reconnecter.")
-            return
-        }
-        
-        performRequest(endpoint: .fetchPictures, method: "GET", token: token, pathComponent: fileName) { data, response, error in
-            if let error = error {
-                completion(false, nil, error)
-                return
-            }
-            
-            guard let httpResponse = response, let data = data else {
-                return
-            }
-            
-            switch httpResponse.statusCode {
-            case 200:
-                completion(true, data, nil)
-            default:
-                completion(false, nil, "Erreur inattendue (code \(httpResponse.statusCode)).")
-            }
-        }
+        }.resume()
     }
 }
