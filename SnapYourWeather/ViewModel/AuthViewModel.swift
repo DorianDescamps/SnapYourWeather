@@ -1,19 +1,9 @@
-//
-//  AuthViewModel.swift
-//  SnapYourWeather
-//
-//  Created by etudiant on 10/12/2024.
-//
-
 import Foundation
 import Combine
 import SwiftUI
 
 class AuthViewModel: ObservableObject {
-    
     // Informations pour la session
-    @Published var loggedInUserEmail: String? = nil
-    @Published var userName: String? = nil
     @Published var authToken: String? = nil
     
     // Pour afficher les messages d'erreur
@@ -174,7 +164,6 @@ class AuthViewModel: ObservableObject {
                        let datas = jsonObject["datas"] as? [String: Any],
                        let token = datas["value"] as? String {
                         self.authToken = token
-                        self.loggedInUserEmail = email
                         self.userRepository.saveToken(token)
                         completion(true)
                     } else {
@@ -199,79 +188,62 @@ class AuthViewModel: ObservableObject {
     }
     
     // MARK: - Récupérer les détails de l'utilisateur connecté
-    func fetchUserDetails(completion: @escaping (Bool, Bool) -> Void) {
+    func fetchUserDetails(completion: @escaping (Bool, [String: Any]?, String?) -> Void) {
         guard let token = self.authToken else {
-            self.errorMessage = "Token introuvable, veuillez vous reconnecter."
-            completion(false, false)
+            completion(false, nil, "Token introuvable. Veuillez vous reconnecter.")
             return
         }
 
         performRequest(endpoint: .userDetails, method: "GET", token: token) { data, response, error in
             if let error = error {
-                self.errorMessage = "Erreur réseau : \(error.localizedDescription)"
-                completion(false, false)
+                completion(false, nil, "Erreur réseau : \(error.localizedDescription)")
                 return
             }
 
             guard let httpResponse = response, let data = data else {
-                self.errorMessage = "Réponse serveur invalide."
-                completion(false, false)
+                completion(false, nil, "Réponse serveur invalide.")
                 return
             }
 
             switch httpResponse.statusCode {
-            case 200:
-                do {
-                    if let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                       let datas = jsonObject["datas"] as? [String: Any] {
-                        self.loggedInUserEmail = datas["email_address"] as? String
-                        self.userName = datas["user_name"] as? String
-                        
-                        let needsUsername = self.userName == nil
-                        completion(true, needsUsername)
-                    } else {
-                        self.errorMessage = "Format de réponse inattendu."
-                        completion(false, false)
-                    }
-                } catch {
-                    self.errorMessage = "Impossible de parser la réponse JSON : \(error.localizedDescription)"
-                    completion(false, false)
+                case 200:
+                    let body = try! JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+                    let datas = body["datas"] as! [String: Any]
+                    completion(true, datas, nil)
+                default:
+                    completion(false, nil, "Erreur inattendue (code \(httpResponse.statusCode)).")
                 }
-            default:
-                self.errorMessage = "Erreur inattendue (code \(httpResponse.statusCode))."
-                completion(false, false)
-            }
         }
     }
 
-    // MARK: - Définir le pseudo après la connexion
-    func setUsername(userName: String, completion: @escaping (Bool) -> Void) {
+    // MARK: - Modifier les détails de l'utilisateur connecté
+    func setUserDetails(userName: String, completion: @escaping (Bool, String?) -> Void) {
         guard let token = self.authToken else {
-            self.errorMessage = "Token introuvable, veuillez vous reconnecter."
-            completion(false)
+            completion(false, "Token introuvable, veuillez vous reconnecter.")
             return
         }
 
         let body = ["user_name": userName]
         performRequest(endpoint: .userDetails, method: "POST", token: token, body: body) { _, response, error in
             if let error = error {
-                self.errorMessage = "Erreur réseau : \(error.localizedDescription)"
-                completion(false)
+                completion(false, "Erreur réseau : \(error.localizedDescription)")
                 return
             }
 
             guard let httpResponse = response else {
-                self.errorMessage = "Réponse serveur invalide."
-                completion(false)
+                completion(false, "Réponse serveur invalide.")
                 return
             }
 
-            if httpResponse.statusCode == 200 {
-                self.userName = userName
-                completion(true)
-            } else {
-                self.errorMessage = "Impossible de définir le pseudo (code \(httpResponse.statusCode))."
-                completion(false)
+            switch httpResponse.statusCode {
+                case 200:
+                    completion(true, nil)
+                case 400:
+                    completion(false, "Nom d'utilisateur invalide. Utilisez uniquement des lettres, chiffres et underscores.")
+                case 409:
+                    completion(false, "Nom d'utilisateur déjà utilisé.")
+                default:
+                    completion(false, "Erreur inattendue (code \(httpResponse.statusCode)).")
             }
         }
     }
@@ -279,9 +251,6 @@ class AuthViewModel: ObservableObject {
     // MARK: - Déconnexion
     func logout() {
         self.authToken = nil
-        self.loggedInUserEmail = nil
-        self.userName = nil
-        self.errorMessage = ""
         userRepository.removeToken()
     }
 }
