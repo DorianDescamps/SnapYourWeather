@@ -56,17 +56,6 @@ struct PictureDetailView: View {
                 Divider()
                     .background(Color.gray.opacity(0.4))
                 
-                VStack(spacing: 5) {
-                    Text("Publié par : \(picture.user.user_name)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    Text(formatDate(picture.datetime))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal)
-                
                 if let data = mainImageData, let uiImage = UIImage(data: data) {
                     Image(uiImage: uiImage)
                         .resizable()
@@ -80,9 +69,19 @@ struct PictureDetailView: View {
                         .padding()
                 }
                 
+                VStack(spacing: 5) {
+                    Text("Publié par : @\(picture.user.user_name)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Text(formatDate(picture.datetime))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal)
+                
                 Spacer()
                 
-                // Bouton de fermeture
                 Button("Fermer") {
                     presentationMode.wrappedValue.dismiss()
                 }
@@ -100,8 +99,12 @@ struct PictureDetailView: View {
                     }.resume()
                 }
                 
-                picturesVM.fetchPictureImage(fileName: picture.fileName) { data in
-                    self.mainImageData = data
+                picturesVM.fetchPictureImage(fileName: picture.fileName) { success, data, error in
+                    if success, let imageData = data {
+                        self.mainImageData = imageData
+                    } else {
+                        self.mainImageData = nil
+                    }
                 }
             }
         }
@@ -113,7 +116,7 @@ struct PictureDetailView: View {
         
         if let date = formatter.date(from: isoDate) {
             let outputFormatter = DateFormatter()
-            outputFormatter.dateFormat = "HH:mm dd/MM/yyyy"
+            outputFormatter.dateFormat = "dd/MM/yyyy HH:mm"
             return outputFormatter.string(from: date)
         } else {
             return "Date invalide"
