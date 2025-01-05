@@ -6,6 +6,7 @@ struct SignInView: View {
     
     @State private var email = ""
     @State private var password = ""
+    @State private var errorMessage: String? = nil
 
     var body: some View {
         VStack(spacing: 30) {
@@ -16,15 +17,17 @@ struct SignInView: View {
             SecureField("Mot de passe", text: $password)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
 
-            if !authViewModel.errorMessage.isEmpty {
-                Text(authViewModel.errorMessage)
+            if (errorMessage != nil) {
+                Text(errorMessage!)
                     .foregroundColor(.red)
             }
 
             Button("Se connecter") {
-                authViewModel.login(email: email, password: password) { success in
-                    if success {
+                authViewModel.getToken(email: email, password: password) { success, datas, errorMessage in
+                    if (success) {
                         navigationPath.removeLast(navigationPath.count)
+                    } else {
+                        self.errorMessage = errorMessage
                     }
                 }
             }
