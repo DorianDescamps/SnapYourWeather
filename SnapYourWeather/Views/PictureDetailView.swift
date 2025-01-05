@@ -99,12 +99,8 @@ struct PictureDetailView: View {
                     }.resume()
                 }
                 
-                picturesVM.fetchPictureImage(fileName: picture.fileName) { success, data, error in
-                    if success, let imageData = data {
-                        self.mainImageData = imageData
-                    } else {
-                        self.mainImageData = nil
-                    }
+                picturesVM.fetchPictureImage(fileName: picture.fileName) { data in
+                    self.mainImageData = data
                 }
             }
         }
