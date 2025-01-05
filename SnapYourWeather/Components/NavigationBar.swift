@@ -10,46 +10,39 @@ import SwiftUI
 struct NavigationBar: View {
     @Binding var selectedTab: MainView.Tab
 
+    struct TabItem {
+        let tab: MainView.Tab
+        let imageName: String
+        let title: String
+    }
+
+    private let tabs: [TabItem] = [
+        TabItem(tab: .camera, imageName: "camera", title: "Caméra"),
+        TabItem(tab: .map, imageName: "map", title: "Carte")
+    ]
+
     var body: some View {
         HStack {
             Spacer()
-
-            Button(action: {
-                if selectedTab != .camera {
-                    withAnimation {
-                        selectedTab = .camera
+            ForEach(tabs, id: \.tab) { tabItem in
+                Button(action: {
+                    if selectedTab != tabItem.tab {
+                        withAnimation {
+                            selectedTab = tabItem.tab
+                        }
+                    }
+                }) {
+                    VStack {
+                        Image(systemName: tabItem.imageName)
+                            .font(.system(size: 24))
+                        Text(tabItem.title)
+                            .font(.caption)
                     }
                 }
-            }) {
-                VStack {
-                    Image(systemName: "camera")
-                        .font(.system(size: 24))
-                    Text("Caméra")
-                        .font(.caption)
-                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .foregroundColor(selectedTab == tabItem.tab ? .blue : .gray)
             }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .foregroundColor(selectedTab == .camera ? .blue : .gray)
-
-            Button(action: {
-                if selectedTab != .map {
-                    withAnimation {
-                        selectedTab = .map
-                    }
-                }
-            }) {
-                VStack {
-                    Image(systemName: "map")
-                        .font(.system(size: 24))
-                    Text("Carte")
-                        .font(.caption)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .foregroundColor(selectedTab == .map ? .blue : .gray)
-
             Spacer()
         }
         .frame(height: 60)
