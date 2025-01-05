@@ -3,52 +3,51 @@ import SwiftUI
 struct SignUpView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     
-    // Étapes du flow
     enum SignupStep {
-        case emailCheck
-        case requestCode
+        case createAccount
+        case requestTemporaryCode
         case setPassword
         case finished
     }
     
-    @State private var currentStep: SignupStep = .emailCheck
+    @State private var currentStep: SignupStep = .createAccount
     @State private var email = ""
     @State private var temporaryCode = ""
     @State private var password = ""
+    @State private var errorMessage: String? = nil
     @State private var showLoginAfterSuccess = false
     
     var body: some View {
         VStack(spacing: 30) {
-            // Affiche les vues spécifiques à chaque étape
-            stepView(for: currentStep)
+            setViewStep(for: currentStep)
             
-            if !authViewModel.errorMessage.isEmpty {
-                Text(authViewModel.errorMessage)
+            if (errorMessage != nil) {
+                Text(errorMessage!)
                     .foregroundColor(.red)
             }
-            
-            Spacer()
         }
         .padding()
         .navigationTitle("Inscription")
     }
     
     @ViewBuilder
-    private func stepView(for step: SignupStep) -> some View {
+    private func setViewStep(for step: SignupStep) -> some View {
         switch step {
-        case .emailCheck:
+        case .createAccount:
             StepEmailCheckView(email: $email) {
-                authViewModel.checkEmailAvailability(email: email) { success in
-                    if success {
-                        currentStep = .requestCode
+                authViewModel.createAccount(email: email) { success, errorMessage in
+                    if (success) {
+                        currentStep = .requestTemporaryCode
+                    } else {
+                        self.errorMessage = errorMessage
                     }
                 }
             }
             
-        case .requestCode:
+        case .requestTemporaryCode:
             StepRequestCodeView {
-                authViewModel.requestTemporaryCode(email: email) { success in
-                    if success {
+                authViewModel.requestTemporaryCode(email: email) { success, datas, errorMessage in
+                    if (success) {
                         currentStep = .setPassword
                     }
                 }
@@ -56,8 +55,8 @@ struct SignUpView: View {
             
         case .setPassword:
             StepSetPasswordView(email: $email, temporaryCode: $temporaryCode, password: $password) {
-                authViewModel.setPassword(email: email, temporaryCode: temporaryCode, password: password) { success in
-                    if success {
+                authViewModel.setPassword(email: email, temporaryCode: temporaryCode, password: password) { success, errorMessage in
+                    if (success) {
                         currentStep = .finished
                         showLoginAfterSuccess = true
                     }
