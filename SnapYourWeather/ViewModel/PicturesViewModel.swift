@@ -14,14 +14,12 @@ class PicturesViewModel: ObservableObject {
     @Published var pictures: [Picture] = []
     @Published var errorMessage: String = ""
     
-    // On peut injecter l'AuthViewModel ou juste le token
     private let authViewModel: AuthViewModel
     
     init(authViewModel: AuthViewModel) {
         self.authViewModel = authViewModel
     }
     
-    // Récupérer la liste des photos
     func fetchPictures() {
         guard let token = authViewModel.authToken else {
             self.errorMessage = "Token introuvable, veuillez vous reconnecter."
@@ -50,7 +48,6 @@ class PicturesViewModel: ObservableObject {
                     return
                 }
                 
-                // Vérifier le code de statut
                 guard httpResponse.statusCode == 200 else {
                     self.errorMessage = "Erreur inattendue (code \(httpResponse.statusCode))."
                     return
