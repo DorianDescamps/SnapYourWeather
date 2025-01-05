@@ -31,9 +31,9 @@ struct EntryView: View {
                 .navigationTitle("Bienvenue")
                 .navigationDestination(for: String.self) { destination in
                     if destination == "Login" {
-                        LoginView(navigationPath: $navigationPath)
+                        SignInView(navigationPath: $navigationPath)
                     } else if destination == "Signup" {
-                        SignupView()
+                        SignUpView()
                     }
                 }
             }
