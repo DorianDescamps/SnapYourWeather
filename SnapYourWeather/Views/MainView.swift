@@ -18,7 +18,7 @@ struct MainView: View {
         TabView(selection: $selectedTab) {
             CameraEntry()
                 .tag(Tab.camera)
-            MapView()
+            MapView(authViewModel: authViewModel)
                 .tag(Tab.map)
         }
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
