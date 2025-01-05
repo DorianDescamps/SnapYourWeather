@@ -1,3 +1,10 @@
+//
+//  PicturesViewModel.swift
+//  SnapYourWeather
+//
+//  Created by etudiant on 05/01/2025.
+//
+
 import Foundation
 import Combine
 import SwiftUI
