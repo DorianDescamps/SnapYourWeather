@@ -1,10 +1,3 @@
-//
-//  HomeView.swift
-//  SnapYourWeather
-//
-//  Created by etudiant on 10/12/2024.
-//
-
 import SwiftUI
 
 struct EntryView: View {
@@ -16,7 +9,7 @@ struct EntryView: View {
             if let token = authViewModel.authToken, !token.isEmpty {
                 MainView(token: token)
             } else {
-                VStack(spacing: 20) {
+                VStack(spacing: 30) {
                     Button("Connexion") {
                         navigationPath.append("Login")
                     }

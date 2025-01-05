@@ -1,17 +1,13 @@
-//
-//  MainView.swift
-//  SnapYourWeather
-//
-//  Created by etudiant on 10/12/2024.
-//
-
 import SwiftUI
 
 struct MainView: View {
-    let token: String
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @Environment(\.presentationMode) var presentationMode
+    
+    @State public var  token: String
     @State private var selectedTab: Tab = .camera
     @State private var showSettings = false
-    @State private var showUserNameAlert = true
+    @State private var showUserNameAlert = false
 
     enum Tab {
         case camera
@@ -26,6 +22,18 @@ struct MainView: View {
                 .tag(Tab.map)
         }
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+        .onAppear {
+            authViewModel.fetchUserDetails { success, datas, errorMessage in
+                if (success) {
+                    if (datas!["user_name"] is NSNull) {
+                        showUserNameAlert = true
+                    }
+                } else {
+                    authViewModel.logout()
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+        }
         
         ZStack {
             NavigationBar(selectedTab: $selectedTab)

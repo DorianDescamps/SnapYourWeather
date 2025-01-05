@@ -1,10 +1,3 @@
-//
-//  SignupView.swift
-//  SnapYourWeather
-//
-//  Created by etudiant on 10/12/2024.
-//
-
 import SwiftUI
 
 struct SignUpView: View {
