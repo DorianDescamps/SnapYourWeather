@@ -18,7 +18,7 @@ struct SignUpView: View {
     @State private var showLoginAfterSuccess = false
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 30) {
             // Affiche les vues spécifiques à chaque étape
             stepView(for: currentStep)
             

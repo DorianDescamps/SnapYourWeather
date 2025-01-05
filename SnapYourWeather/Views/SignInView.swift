@@ -8,7 +8,7 @@ struct SignInView: View {
     @State private var password = ""
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 30) {
             TextField("Email", text: $email)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .autocapitalization(.none)
