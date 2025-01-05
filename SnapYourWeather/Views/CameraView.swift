@@ -127,7 +127,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     }
 
     func capturePhoto() {
-        print("Capture de la photo...")
         let settings = AVCapturePhotoSettings()
         photoOutput?.capturePhoto(with: settings, delegate: self)
     }
@@ -144,9 +143,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             return
         }
 
-        // Utilise le callback pour transmettre l'image
         onPhotoCaptured?(image)
-        print("Photo capturée et transmise à SwiftUI.")
     }
 
     override func viewWillLayoutSubviews() {

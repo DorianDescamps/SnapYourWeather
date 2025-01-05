@@ -1,10 +1,3 @@
-//
-//  NavigationBar.swift
-//  SnapYourWeather
-//
-//  Created by etudiant on 10/12/2024.
-//
-
 import SwiftUI
 
 struct NavigationBar: View {
@@ -42,7 +35,6 @@ struct NavigationBar: View {
                 .foregroundColor(selectedTab == tabItem.tab ? .blue : .gray)
             }
         }
-        .frame(height: 60)
-        .background(Color.white)
+        .frame(height: 70)
     }
 }

@@ -23,9 +23,6 @@ struct PhotoPreview: View {
             .foregroundColor(.white)
             .cornerRadius(10)
         }
-        .onAppear {
-            print("PhotoPreview - Image reçue : \(image)")
-        }
         .padding()
         .background(Color.black.edgesIgnoringSafeArea(.all))
     }
