@@ -23,7 +23,6 @@ struct NavigationBar: View {
 
     var body: some View {
         HStack {
-            Spacer()
             ForEach(tabs, id: \.tab) { tabItem in
                 Button(action: {
                     if selectedTab != tabItem.tab {
@@ -40,10 +39,8 @@ struct NavigationBar: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .padding()
                 .foregroundColor(selectedTab == tabItem.tab ? .blue : .gray)
             }
-            Spacer()
         }
         .frame(height: 60)
         .background(Color.white)

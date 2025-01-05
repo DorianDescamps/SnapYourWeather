@@ -1,19 +1,8 @@
-//
-//  AlertWrapper.swift
-//  SnapYourWeather
-//
-//  Created by Théo Bontemps on 05/01/2025.
-//
-
 import SwiftUI
 import UIKit
 
-struct AlertWrapper: UIViewControllerRepresentable {
+struct UserNameAlert: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
-    let title: String
-    let message: String
-    let placeholder: String
-    let completion: (String?) -> Void
 
     func makeUIViewController(context: Context) -> UIViewController {
         return UIViewController()
@@ -21,25 +10,51 @@ struct AlertWrapper: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         if isPresented {
-            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            presentAlert(on: uiViewController, message: "Il doit contenir uniquement des lettres, chiffres et underscore.")
+        }
+    }
 
-            alert.addTextField { textField in
-                textField.placeholder = placeholder
-                textField.keyboardType = .asciiCapable
-                textField.autocapitalizationType = .none
-            }
+    private func presentAlert(on viewController: UIViewController, message: String) {
+        let alert = UIAlertController(title: "Un pseud0 ?", message: nil, preferredStyle: .alert)
 
-            let submitAction = UIAlertAction(title: "Valider", style: .default) { _ in
-                let input = alert.textFields?.first?.text
-                completion(input)
-                //isPresented = false
-            }
+        let attributedMessage = NSAttributedString(
+            string: message,
+            attributes: [
+                .foregroundColor: message.contains("invalide") ? UIColor.red : UIColor.black,
+                .font: UIFont.systemFont(ofSize: 14)
+            ]
+        )
+        alert.setValue(attributedMessage, forKey: "attributedMessage")
 
-            alert.addAction(submitAction)
+        alert.addTextField { textField in
+            textField.placeholder = "ton_pseudo"
+            textField.keyboardType = .asciiCapable
+            textField.autocapitalizationType = .none
+        }
 
-            DispatchQueue.main.async {
-                uiViewController.present(alert, animated: true, completion: nil)
+        let submitAction = UIAlertAction(title: "Valider", style: .default) { _ in
+            guard let input = alert.textFields?.first?.text else { return }
+
+            if isValidUsername(input) {
+                isPresented = false
+            } else {
+                presentAlert(
+                    on: viewController,
+                    message: "Nom d'utilisateur invalide. Utilisez uniquement des lettres, chiffres et underscores."
+                )
             }
         }
+
+        alert.addAction(submitAction)
+
+        DispatchQueue.main.async {
+            viewController.present(alert, animated: true, completion: nil)
+        }
+    }
+
+    private func isValidUsername(_ username: String) -> Bool {
+        let usernameRegex = "^[a-zA-Z0-9_]+$"
+        let predicate = NSPredicate(format: "SELF MATCHES %@", usernameRegex)
+        return predicate.evaluate(with: username)
     }
 }
