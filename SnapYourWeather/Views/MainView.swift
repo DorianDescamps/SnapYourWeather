@@ -18,14 +18,13 @@ struct MainView: View {
     }
 
     var body: some View {
-            TabView(selection: $selectedTab) {
-                CameraEntry()
-                    .tag(Tab.camera)
-
-                MapView()
-                    .tag(Tab.map)
-            }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+        TabView(selection: $selectedTab) {
+            CameraEntry()
+                .tag(Tab.camera)
+            MapView()
+                .tag(Tab.map)
+        }
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
 
         NavigationBar(selectedTab: $selectedTab)
             .edgesIgnoringSafeArea(.bottom)

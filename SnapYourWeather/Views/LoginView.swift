@@ -1,19 +1,11 @@
-//
-//  LoginView.swift
-//  SnapYourWeather
-//
-//  Created by etudiant on 10/12/2024.
-//
-
 import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Binding var navigationPath: NavigationPath
-
+    
     @State private var email = ""
     @State private var password = ""
-    @State private var errorMessage = ""
 
     var body: some View {
         VStack(spacing: 20) {
@@ -24,14 +16,16 @@ struct LoginView: View {
             SecureField("Mot de passe", text: $password)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
 
-            Text(errorMessage)
-                .foregroundColor(.red)
+            if !authViewModel.errorMessage.isEmpty {
+                Text(authViewModel.errorMessage)
+                    .foregroundColor(.red)
+            }
 
             Button("Se connecter") {
-                if let error = authViewModel.login(email: email, password: password) {
-                    errorMessage = error
-                } else {
-                    navigationPath.removeLast(navigationPath.count)
+                authViewModel.login(email: email, password: password) { success in
+                    if success {
+                        navigationPath.removeLast(navigationPath.count)
+                    }
                 }
             }
             .buttonStyle(PrimaryButtonStyle())
