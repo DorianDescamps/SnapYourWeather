@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct LoginView: View {
+struct SignInView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Binding var navigationPath: NavigationPath
     
