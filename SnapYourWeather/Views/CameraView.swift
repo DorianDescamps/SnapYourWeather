@@ -93,6 +93,6 @@ struct CameraEntry: View {
                     .foregroundColor(.white)
             }
         }
-        .navigationBarTitle("Caméra", displayMode: .inline)
+            .navigationBarTitle("Caméra", displayMode: .inline)
     }
 }

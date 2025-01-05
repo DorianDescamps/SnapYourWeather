@@ -11,6 +11,7 @@ struct MainView: View {
     let token: String
     @State private var selectedTab: Tab = .camera
     @State private var showSettings = false
+    @State private var showUserNameAlert = true
 
     enum Tab {
         case camera
@@ -25,23 +26,25 @@ struct MainView: View {
                 .tag(Tab.map)
         }
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-
-        NavigationBar(selectedTab: $selectedTab)
-            .edgesIgnoringSafeArea(.bottom)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showSettings = true
-                    }) {
-                        Image(systemName: "gearshape")
+        
+        ZStack {
+            NavigationBar(selectedTab: $selectedTab)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            showSettings = true
+                        }) {
+                            Image(systemName: "gearshape")
+                        }
                     }
                 }
-            }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-            }
-            .onAppear {
-                print("Utilisateur connecté avec le token : \(token)")
-            }
+                .sheet(isPresented: $showSettings) {
+                    SettingsView()
+                }
+                .edgesIgnoringSafeArea(.bottom)
+
+            UserNameAlert(isPresented: $showUserNameAlert)
+                .frame(width: 0, height: 0)
+        }
     }
 }
