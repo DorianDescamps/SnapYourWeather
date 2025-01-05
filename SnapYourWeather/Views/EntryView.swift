@@ -16,7 +16,7 @@ struct EntryView: View {
                     .buttonStyle(PrimaryButtonStyle())
 
                     Button("Inscription") {
-                        navigationPath.append("Signup")
+                        navigationPath.append("SignUp")
                     }
                     .buttonStyle(SecondaryButtonStyle())
                 }
@@ -25,7 +25,7 @@ struct EntryView: View {
                 .navigationDestination(for: String.self) { destination in
                     if destination == "Login" {
                         SignInView(navigationPath: $navigationPath)
-                    } else if destination == "Signup" {
+                    } else if destination == "SignUp" {
                         SignUpView()
                     }
                 }
@@ -35,12 +35,14 @@ struct EntryView: View {
 }
 
 struct PrimaryButtonStyle: ButtonStyle {
+    var backgroundColor: Color = .blue
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.title2)
             .padding()
             .frame(maxWidth: .infinity)
-            .background(configuration.isPressed ? Color.blue.opacity(0.7) : Color.blue)
+            .background(configuration.isPressed ? backgroundColor.opacity(0.7) : backgroundColor)
             .foregroundColor(.white)
             .cornerRadius(10)
     }
@@ -52,8 +54,7 @@ struct SecondaryButtonStyle: ButtonStyle {
             .font(.title2)
             .padding()
             .frame(maxWidth: .infinity)
-            .background(configuration.isPressed ? Color.green.opacity(0.7) : Color.green)
-            .foregroundColor(.white)
+            .foregroundColor(configuration.isPressed ? .blue.opacity(0.7) : .blue)
             .cornerRadius(10)
     }
 }

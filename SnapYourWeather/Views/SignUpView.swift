@@ -26,7 +26,6 @@ struct SignUpView: View {
                     .foregroundColor(.red)
             }
         }
-        .padding()
         .navigationTitle("Inscription")
     }
     
@@ -34,7 +33,7 @@ struct SignUpView: View {
     private func setViewStep(for step: SignupStep) -> some View {
         switch step {
         case .createAccount:
-            StepEmailCheckView(email: $email) {
+            CreateAccountStepView(email: $email) {
                 authViewModel.createAccount(email: email) { success, errorMessage in
                     if (success) {
                         currentStep = .requestTemporaryCode
@@ -45,7 +44,7 @@ struct SignUpView: View {
             }
             
         case .requestTemporaryCode:
-            StepRequestCodeView {
+            RequestTemporaryCodeView {
                 authViewModel.requestTemporaryCode(email: email) { success, datas, errorMessage in
                     if (success) {
                         currentStep = .setPassword
@@ -54,7 +53,7 @@ struct SignUpView: View {
             }
             
         case .setPassword:
-            StepSetPasswordView(email: $email, temporaryCode: $temporaryCode, password: $password) {
+            SetPasswordStepView(email: $email, temporaryCode: $temporaryCode, password: $password) {
                 authViewModel.setPassword(email: email, temporaryCode: temporaryCode, password: password) { success, errorMessage in
                     if (success) {
                         currentStep = .finished
@@ -64,12 +63,12 @@ struct SignUpView: View {
             }
             
         case .finished:
-            StepFinishedView()
+            FinishedStepView()
         }
     }
 }
 
-struct StepEmailCheckView: View {
+struct CreateAccountStepView: View {
     @Binding var email: String
     var onNext: () -> Void
     
@@ -81,12 +80,12 @@ struct StepEmailCheckView: View {
                 .autocapitalization(.none)
             
             Button("Vérifier l'email", action: onNext)
-                .buttonStyle(SecondaryButtonStyle())
+                .buttonStyle(PrimaryButtonStyle())
         }
     }
 }
 
-struct StepRequestCodeView: View {
+struct RequestTemporaryCodeView: View {
     var onNext: () -> Void
     
     var body: some View {
@@ -95,12 +94,12 @@ struct StepRequestCodeView: View {
             Text("Un code de 6 chiffres vous sera envoyé par mail.")
             
             Button("Demander le code", action: onNext)
-                .buttonStyle(SecondaryButtonStyle())
+                .buttonStyle(PrimaryButtonStyle())
         }
     }
 }
 
-struct StepSetPasswordView: View {
+struct SetPasswordStepView: View {
     @Binding var email: String
     @Binding var temporaryCode: String
     @Binding var password: String
@@ -118,19 +117,19 @@ struct StepSetPasswordView: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
             
             Button("Créer le compte", action: onNext)
-                .buttonStyle(SecondaryButtonStyle())
+                .buttonStyle(PrimaryButtonStyle())
         }
     }
 }
 
-struct StepFinishedView: View {
+struct FinishedStepView: View {
     var body: some View {
         VStack(spacing: 15) {
             Text("Compte créé avec succès. Vous pouvez vous connecter.")
             
             NavigationLink(value: "Login") {
                 Text("Se connecter")
-                    .buttonStyle(SecondaryButtonStyle())
+                    .buttonStyle(PrimaryButtonStyle())
             }
         }
     }

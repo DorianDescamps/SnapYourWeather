@@ -30,7 +30,7 @@ struct MainView: View {
                             showUserNameAlert = true
                         }
                     } else {
-                        authViewModel.logout()
+                        authViewModel.unpersistToken()
                         presentationMode.wrappedValue.dismiss()
                     }
                 }

@@ -53,10 +53,6 @@ struct MapView: View {
                     }
                 }
             }
-            .mapControls {
-                MapUserLocationButton()
-                MapCompass()
-            }
             .mapStyle(.standard(elevation: .realistic))
         }
         .navigationBarTitle("Carte", displayMode: .inline)

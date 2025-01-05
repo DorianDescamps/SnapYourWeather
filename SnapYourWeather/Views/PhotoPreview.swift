@@ -18,10 +18,7 @@ struct PhotoPreview: View {
             Button("Fermer") {
                 isPresented = false
             }
-            .padding()
-            .background(Color.red)
-            .foregroundColor(.white)
-            .cornerRadius(10)
+            .buttonStyle(SecondaryButtonStyle())
         }
         .padding()
         .background(Color.black.edgesIgnoringSafeArea(.all))

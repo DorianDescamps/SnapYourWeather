@@ -37,12 +37,11 @@ class AuthViewModel: ObservableObject {
         
         var request = URLRequest(url: url)
         request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         if let token = token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-        
-        //request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         if let body = body {
             request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
@@ -52,7 +51,8 @@ class AuthViewModel: ObservableObject {
             DispatchQueue.main.async {
                 completion(body, response as? HTTPURLResponse, error)
             }
-        }.resume()
+        }
+        .resume()
     }
     
     // MARK: - Créer un compte
@@ -64,7 +64,7 @@ class AuthViewModel: ObservableObject {
                 completion(false, "Erreur réseau : \(error.localizedDescription)")
                 return
             }
-            //???
+
             guard let httpResponse = response else {
                 completion(false, "Réponse invalide du serveur.")
                 return
@@ -73,8 +73,10 @@ class AuthViewModel: ObservableObject {
             switch httpResponse.statusCode {
             case 200:
                 completion(true, nil)
+            case 400:
+                completion(false, "Adresse e-mail invalide.")
             case 409:
-                completion(false, "Cet email est déjà utilisé.")
+                completion(false, "Adresse e-mail déjà utilisé.")
             default:
                 completion(false, "Erreur inattendue (code \(httpResponse.statusCode)).")
             }
@@ -99,8 +101,10 @@ class AuthViewModel: ObservableObject {
             switch httpResponse.statusCode {
             case 200:
                 completion(true, nil, nil)
-            case 404:
-                completion(false, nil, "Email non trouvé.")
+            case 400:
+                completion(false, nil, "Adresse e-mail invalide.")
+            case 401:
+                completion(false, nil, "Adresse e-mail invalide.")
             default:
                 completion(false, nil, "Erreur inattendue (code \(httpResponse.statusCode)).")
             }
@@ -129,10 +133,12 @@ class AuthViewModel: ObservableObject {
             switch httpResponse.statusCode {
             case 200:
                 completion(true, nil)
+            case 400:
+                completion(false, "Code temporaire ou mot de passe invalide (8 caractères minimum).")
+            case 401:
+                completion(false, "Adresse e-mail invalide.")
             case 403:
                 completion(false, "Code temporaire invalide.")
-            case 400:
-                completion(false, "Mot de passe non conforme (8 caractères minimum).")
             default:
                 completion(false, "Erreur inattendue (code \(httpResponse.statusCode)).")
             }
@@ -161,13 +167,41 @@ class AuthViewModel: ObservableObject {
             case 200:
                 let body = try! JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
                 let datas = body["datas"] as! [String: Any]
+                
                 completion(true, datas, nil)
+            case 400:
+                completion(false, nil, "Adresse e-mail ou mot de passe invalide.")
+            case 401:
+                completion(false, nil, "Adresse e-mail invalide.")
             case 403:
                 completion(false, nil, "Mot de passe invalide.")
-            case 401:
-                completion(false, nil, "Email invalide.")
             default:
                 completion(false, nil, "Erreur inattendue (code \(httpResponse.statusCode)).")
+            }
+        }
+    }
+    
+    func expireToken(completion: @escaping (Bool, String?) -> Void) {
+        performRequest(endpoint: .userDetails, method: "DELETE") { _, response, error in
+            if let error = error {
+                completion(false, "Erreur réseau : \(error.localizedDescription)")
+                return
+            }
+            
+            guard let httpResponse = response else {
+                completion(false, "Réponse serveur invalide.")
+                return
+            }
+            
+            switch httpResponse.statusCode {
+            case 200:
+                completion(true, nil)
+            case 401:
+                completion(false, "Token invalide.")
+            case 403:
+                completion(false, "Token expiré.")
+            default:
+                completion(false, "Erreur inattendue (code \(httpResponse.statusCode)).")
             }
         }
     }
@@ -194,7 +228,12 @@ class AuthViewModel: ObservableObject {
                 case 200:
                     let body = try! JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
                     let datas = body["datas"] as! [String: Any]
+                
                     completion(true, datas, nil)
+                case 401:
+                    completion(false, nil, "Token invalide.")
+                case 403:
+                    completion(false, nil, "Token expiré.")
                 default:
                     completion(false, nil, "Erreur inattendue (code \(httpResponse.statusCode)).")
                 }
@@ -225,6 +264,10 @@ class AuthViewModel: ObservableObject {
                     completion(true, nil)
                 case 400:
                     completion(false, "Nom d'utilisateur invalide. Utilisez uniquement des lettres, chiffres et underscores.")
+                case 401:
+                    completion(false, "Token invalide.")
+                case 403:
+                    completion(false, "Token expiré.")
                 case 409:
                     completion(false, "Nom d'utilisateur déjà utilisé.")
                 default:
@@ -232,10 +275,16 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
+    
+    // MARK: - Sauvegarde du jeton d'authentification
+    func persistToken(token: String) {
+        self.authToken = token
+        userRepository.saveToken(token)
+    }
 
-    // MARK: - Déconnexion
-    func logout() {
-        self.authToken = nil
+    // MARK: - Suppression du jeton d'authentification
+    func unpersistToken() {
         userRepository.removeToken()
+        self.authToken = nil
     }
 }

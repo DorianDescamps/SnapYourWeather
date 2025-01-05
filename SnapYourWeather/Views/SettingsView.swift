@@ -6,6 +6,7 @@ struct SettingsView: View {
 
     @State private var email: String = ""
     @State private var userName: String = ""
+    @State private var errorMessage: String? = nil
 
     var body: some View {
         NavigationStack {
@@ -16,24 +17,31 @@ struct SettingsView: View {
                             .font(.headline)
                         Text(email)
                     }
+                    
                     VStack(alignment: .leading) {
                         Text("Nom d'utilisateur")
                             .font(.headline)
                         Text(userName)
                     }
+                    
+                    if (errorMessage != nil) {
+                        Text(errorMessage!)
+                            .foregroundColor(.red)
+                    }
+                    
+                    Button("Se déconnecter") {
+                        authViewModel.expireToken() { success, errorMessage in
+                            if (success) {
+                                authViewModel.unpersistToken()
+                                presentationMode.wrappedValue.dismiss()
+                            } else {
+                                print(errorMessage!)
+                            }
+                        }
+                    }
+                    .buttonStyle(PrimaryButtonStyle(backgroundColor: .red))
                 }
                     .frame(maxWidth: .infinity, alignment: .leading)
-
-                Button("Se déconnecter") {
-                    authViewModel.logout()
-                    presentationMode.wrappedValue.dismiss()
-                }
-                    .font(.title2)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.red)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
             }
                 .padding()
                 .navigationTitle("Paramètres")
@@ -43,7 +51,7 @@ struct SettingsView: View {
                             self.email = datas!["email_address"] as! String
                             self.userName = datas!["user_name"] as! String
                         } else {
-                            authViewModel.logout()
+                            authViewModel.unpersistToken()
                             presentationMode.wrappedValue.dismiss()
                         }
                     }

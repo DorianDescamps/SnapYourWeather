@@ -70,7 +70,7 @@ struct PictureDetailView: View {
                 }
                 
                 VStack(spacing: 5) {
-                    Text("Publié par : @\(picture.user.user_name)")
+                    Text("@\(picture.user.user_name)")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
@@ -85,8 +85,7 @@ struct PictureDetailView: View {
                 Button("Fermer") {
                     presentationMode.wrappedValue.dismiss()
                 }
-                .font(.headline)
-                .padding()
+                .buttonStyle(SecondaryButtonStyle())
             }
             .navigationTitle("Détails de la photo")
             .navigationBarTitleDisplayMode(.inline)
