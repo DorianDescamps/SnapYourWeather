@@ -1,10 +1,3 @@
-//
-//  SnapYourWeatherApp.swift
-//  SnapYourWeather
-//
-//  Created by etudiant on 10/12/2024.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -13,7 +6,7 @@ struct SnapYourWeatherApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
+        
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
@@ -22,7 +15,7 @@ struct SnapYourWeatherApp: App {
     }()
     
     @StateObject var authViewModel = AuthViewModel()
-
+    
     var body: some Scene {
         WindowGroup {
             EntryView()

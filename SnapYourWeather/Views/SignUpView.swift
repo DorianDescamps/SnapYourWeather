@@ -85,7 +85,7 @@ struct CreateAccountStepView: View {
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
             }
-        
+            
             if (errorMessage != nil) {
                 Text(errorMessage!)
                     .foregroundColor(.red)
@@ -125,8 +125,8 @@ struct RequestTemporaryCodeView: View {
                 isButtonDisabled = true
                 onNext()
             }
-                .buttonStyle(PrimaryButtonStyle())
-                .disabled(isButtonDisabled)
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(isButtonDisabled)
             
         }
         .padding()
@@ -151,7 +151,7 @@ struct SetPasswordStepView: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .keyboardType(.numberPad)
             }
-    
+            
             VStack(alignment: .leading, spacing: 15) {
                 Text("Mot de passe (8 caractères minimum)")
                     .font(.headline)

@@ -15,7 +15,7 @@ struct PicturePreviewView: View {
         self.latitude = latitude
         self.longitude = longitude
     }
-
+    
     var body: some View {
         ScrollView {
             VStack (alignment: .leading, spacing: 30) {

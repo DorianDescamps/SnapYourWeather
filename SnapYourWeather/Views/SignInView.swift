@@ -9,7 +9,7 @@ struct SignInView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var errorMessage: String? = nil
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 30) {
             VStack(alignment: .leading, spacing: 15) {
@@ -22,7 +22,7 @@ struct SignInView: View {
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
             }
-
+            
             VStack(alignment: .leading, spacing: 15) {
                 Text("Mot de passe")
                     .font(.headline)
@@ -30,12 +30,12 @@ struct SignInView: View {
                 SecureField("Mot de passe", text: $password)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
             }
-
+            
             if (errorMessage != nil) {
                 Text(errorMessage!)
                     .foregroundColor(.red)
             }
-
+            
             Button("Se connecter") {
                 authViewModel.getToken(email: email, password: password) { success, errorMessage in
                     if (success) {

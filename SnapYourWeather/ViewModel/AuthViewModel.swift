@@ -181,46 +181,46 @@ class AuthViewModel: ObservableObject {
                 completion(false, nil, "Impossible d'obtenir une réponse valide du serveur.")
                 return
             }
-
+            
             switch response.statusCode {
-                case 200:
-                    let body = try! JSONSerialization.jsonObject(with: data!, options: []) as! [String: Any]
-                    let datas = body["datas"] as! [String: Any]
-                    
-                    completion(true, datas, nil)
-                case 401:
-                    completion(false, nil, "Token invalide.")
-                case 403:
-                    completion(false, nil, "Token expiré.")
-                default:
-                    completion(false, nil, "Erreur inattendue (code \(response.statusCode)).")
-                }
+            case 200:
+                let body = try! JSONSerialization.jsonObject(with: data!, options: []) as! [String: Any]
+                let datas = body["datas"] as! [String: Any]
+                
+                completion(true, datas, nil)
+            case 401:
+                completion(false, nil, "Token invalide.")
+            case 403:
+                completion(false, nil, "Token expiré.")
+            default:
+                completion(false, nil, "Erreur inattendue (code \(response.statusCode)).")
             }
         }
-
+    }
+    
     // MARK: - Modifier les détails de l'utilisateur connecté
     func setUserDetails(userName: String, completion: @escaping (Bool, String?) -> Void) {
         let body = ["user_name": userName]
-            
+        
         performRequest(method: "POST", endpoint: .userDetails, body: body) { _, response, error in
             guard error == nil, let response = response else {
                 completion(false, "Impossible d'obtenir une réponse valide du serveur.")
                 return
             }
-
+            
             switch response.statusCode {
-                case 200:
-                    completion(true, nil)
-                case 400:
-                    completion(false, "Nom d'utilisateur invalide. Utilisez uniquement des lettres, chiffres et underscores.")
-                case 401:
-                    completion(false, "Token invalide.")
-                case 403:
-                    completion(false, "Token expiré.")
-                case 409:
-                    completion(false, "Nom d'utilisateur déjà utilisé.")
-                default:
-                    completion(false, "Erreur inattendue (code \(response.statusCode)).")
+            case 200:
+                completion(true, nil)
+            case 400:
+                completion(false, "Nom d'utilisateur invalide. Utilisez uniquement des lettres, chiffres et underscores.")
+            case 401:
+                completion(false, "Token invalide.")
+            case 403:
+                completion(false, "Token expiré.")
+            case 409:
+                completion(false, "Nom d'utilisateur déjà utilisé.")
+            default:
+                completion(false, "Erreur inattendue (code \(response.statusCode)).")
             }
         }
     }

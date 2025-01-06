@@ -5,16 +5,16 @@ struct MainView: View {
     
     @Binding var navigationPath: NavigationPath
     @Binding var shouldRefresh: Bool
-
+    
     @State private var selectedTab: Tab = .camera
     @State private var showSettings = false
     @State private var showUserNameAlert = false
-
+    
     enum Tab {
         case camera
         case map
     }
-
+    
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $selectedTab) {

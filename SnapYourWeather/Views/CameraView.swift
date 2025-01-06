@@ -12,7 +12,7 @@ struct CameraView: View {
     @State private var latitude: Double? = nil
     @State private var longitude: Double? = nil
     @State private var showPreview = false
-
+    
     var body: some View {
         ZStack {
             CameraViewControllerRepresentable { controller in
@@ -28,7 +28,7 @@ struct CameraView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.black)
-
+            
             VStack {
                 Spacer()
                 
@@ -41,7 +41,7 @@ struct CameraView: View {
                 }
                 .padding()
             }
-
+            
             if ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil {
                 Text("Caméra indisponible dans le simulateur")
                     .foregroundColor(.white)
@@ -63,12 +63,12 @@ struct CameraView: View {
 
 struct CameraViewControllerRepresentable: UIViewControllerRepresentable {
     let onControllerReady: (CameraViewController) -> Void
-
+    
     func makeUIViewController(context: Context) -> CameraViewController {
         let controller = CameraViewController()
         onControllerReady(controller)
         return controller
     }
-
+    
     func updateUIViewController(_ uiViewController: CameraViewController, context: Context) {}
 }

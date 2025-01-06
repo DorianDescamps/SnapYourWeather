@@ -3,7 +3,7 @@ import SwiftUI
 struct EntryView: View {
     @State private var navigationPath = NavigationPath()
     @State private var shouldRefresh = false
-
+    
     var body: some View {
         NavigationStack(path: $navigationPath) {
             if UserRepository.tokenExists() {
@@ -13,12 +13,12 @@ struct EntryView: View {
                     Button("Connexion") {
                         navigationPath.append("SignInView")
                     }
-                        .buttonStyle(PrimaryButtonStyle())
-
+                    .buttonStyle(PrimaryButtonStyle())
+                    
                     Button("Inscription") {
                         navigationPath.append("SignUpView")
                     }
-                        .buttonStyle(SecondaryButtonStyle())
+                    .buttonStyle(SecondaryButtonStyle())
                 }
                 .navigationTitle("Bienvenue ! ☀️")
                 .navigationDestination(for: String.self) { destination in
@@ -42,7 +42,7 @@ struct EntryView: View {
 
 struct PrimaryButtonStyle: ButtonStyle {
     var backgroundColor: Color = .blue
-
+    
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.headline)
