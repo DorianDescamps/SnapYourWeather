@@ -18,7 +18,7 @@ struct MainView: View {
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $selectedTab) {
-                CameraEntry()
+                CameraView()
                     .tag(Tab.camera)
                 MapView()
                     .tag(Tab.map)

@@ -35,6 +35,6 @@ struct NavigationBar: View {
                 .foregroundColor(selectedTab == tabItem.tab ? .blue : .gray)
             }
         }
-        .frame(height: 70)
+        .frame(height: 60)
     }
 }
