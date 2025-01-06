@@ -5,6 +5,9 @@ struct SettingsView: View {
     
     @Environment(\.presentationMode) var presentationMode
 
+    @Binding var navigationPath: NavigationPath
+    @Binding var shouldRefresh: Bool
+    
     @State private var email: String = ""
     @State private var userName: String = ""
     @State private var errorMessage: String? = nil
@@ -33,6 +36,8 @@ struct SettingsView: View {
                     Button("Se déconnecter") {
                         authViewModel.expireToken { success, error in
                             if success {
+                                UserRepository.unpersistToken()
+                                shouldRefresh = true
                                 presentationMode.wrappedValue.dismiss()
                             } else if let error = error {
                                 self.errorMessage = error
@@ -58,7 +63,8 @@ struct SettingsView: View {
                         self.email = datas!["email_address"] as! String
                         self.userName = datas!["user_name"] as! String
                     } else {
-                        TokenManager.shared.unpersistToken()
+                        UserRepository.unpersistToken()
+                        shouldRefresh = true
                         presentationMode.wrappedValue.dismiss()
                     }
                 }

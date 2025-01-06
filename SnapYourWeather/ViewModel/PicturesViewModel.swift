@@ -6,7 +6,6 @@ class PicturesViewModel: ObservableObject {
     // MARK: - API Endpoints
     enum APIEndpoint: String {
         case fetchPictures = "/pictures"
-        case fetchPictureBuffer = "/pictures/"
     }
 
     // MARK: - Méthode générique pour les requêtes réseau
@@ -22,7 +21,7 @@ class PicturesViewModel: ObservableObject {
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        if let token = TokenManager.shared.getToken() {
+        if let token = UserRepository.getToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 

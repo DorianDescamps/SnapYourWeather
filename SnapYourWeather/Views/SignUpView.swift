@@ -43,6 +43,8 @@ struct SignUpView: View {
                 authViewModel.requestTemporaryCode(email: email) { success, errorMessage in
                     if (success) {
                         currentStep = .setPassword
+                    } else {
+                        self.errorMessage = errorMessage
                     }
                 }
             }
@@ -53,6 +55,8 @@ struct SignUpView: View {
                     if (success) {
                         currentStep = .finished
                         showLoginAfterSuccess = true
+                    } else {
+                        self.errorMessage = errorMessage
                     }
                 }
             }
@@ -80,15 +84,18 @@ struct CreateAccountStepView: View {
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
-                
-                if (errorMessage != nil) {
-                    Text(errorMessage!)
-                        .foregroundColor(.red)
-                }
-                
-                Button("Créer le compte", action: onNext)
-                    .buttonStyle(PrimaryButtonStyle())
             }
+        
+            if (errorMessage != nil) {
+                Text(errorMessage!)
+                    .foregroundColor(.red)
+                    .onDisappear {
+                        errorMessage = nil
+                    }
+            }
+            
+            Button("Créer le compte", action: onNext)
+                .buttonStyle(PrimaryButtonStyle())
         }
         .padding()
     }
@@ -99,6 +106,8 @@ struct RequestTemporaryCodeView: View {
     
     var onNext: () -> Void
     
+    @State private var isButtonDisabled = false
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 30) {
             Text("Code temporaire par e-mail")
@@ -107,10 +116,18 @@ struct RequestTemporaryCodeView: View {
             if (errorMessage != nil) {
                 Text(errorMessage!)
                     .foregroundColor(.red)
+                    .onDisappear {
+                        errorMessage = nil
+                    }
             }
             
-            Button("Recevoir le code temporaire par e-mail", action: onNext)
+            Button("Recevoir le code temporaire par e-mail") {
+                isButtonDisabled = true
+                onNext()
+            }
                 .buttonStyle(PrimaryButtonStyle())
+                .disabled(isButtonDisabled)
+            
         }
         .padding()
     }
@@ -146,6 +163,9 @@ struct SetPasswordStepView: View {
             if (errorMessage != nil) {
                 Text(errorMessage!)
                     .foregroundColor(.red)
+                    .onDisappear {
+                        errorMessage = nil
+                    }
             }
             
             Button("Définir le mot de passe", action: onNext)
@@ -161,7 +181,7 @@ struct FinishedStepView: View {
             Text("Compte créé avec succès !")
                 .font(.headline)
             
-            NavigationLink(value: "Login") {
+            NavigationLink(value: "SignInView") {
                 Text("Se connecter")
                     .buttonStyle(PrimaryButtonStyle())
             }

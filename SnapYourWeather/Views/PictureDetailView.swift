@@ -5,6 +5,8 @@ struct PictureDetailView: View {
     
     @Environment(\.presentationMode) var presentationMode
     
+    @State private var pictureBufferEndpoint = "/pictures/"
+    
     @State public var picture: Picture
     @State private var weatherIconURL: URL?
     @State private var pictureURL: URL?
@@ -93,7 +95,7 @@ struct PictureDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             self.weatherIconURL = URL(string: picture.weatherDetails.large_icon_url)
-            self.pictureURL = URL(string: EnvironmentConfig.baseURL + "/pictures/\(picture.fileName)")
+            self.pictureURL = URL(string: EnvironmentConfig.baseURL + pictureBufferEndpoint + picture.fileName)
         }
     }
     
