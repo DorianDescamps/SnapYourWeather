@@ -4,14 +4,14 @@ struct SettingsView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     
     @Environment(\.dismiss) private var dismiss
-
+    
     @Binding var navigationPath: NavigationPath
     @Binding var shouldRefresh: Bool
     
     @State private var email: String = ""
     @State private var userName: String = ""
     @State private var errorMessage: String? = nil
-
+    
     var body: some View {
         NavigationStack {
             ScrollView {

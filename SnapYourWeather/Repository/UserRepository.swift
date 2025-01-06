@@ -2,7 +2,7 @@ import Foundation
 
 class UserRepository {
     private static let key = "token"
-
+    
     static func persistToken(token: String) {
         UserDefaults.standard.set(token, forKey: key)
     }

@@ -9,16 +9,16 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate, CLL
     private let locationManager = CLLocationManager()
     private var currentLocation: CLLocation?
     private var capturedImage: UIImage?
-
+    
     var onPhotoCaptured: ((UIImage, Double, Double) -> Void)?
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         requestCameraAccess()
         setupLocationManager()
         startOrientationNotifications()
     }
-
+    
     private func requestCameraAccess() {
         AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
             DispatchQueue.main.async {
@@ -30,34 +30,34 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate, CLL
             }
         }
     }
-
+    
     private func setupCamera() {
         captureSession = AVCaptureSession()
         captureSession?.sessionPreset = .photo
-
+        
         guard let captureSession = captureSession,
               let backCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
               let input = try? AVCaptureDeviceInput(device: backCamera) else {
             return
         }
-
+        
         if captureSession.canAddInput(input) {
             captureSession.addInput(input)
         }
-
+        
         photoOutput = AVCapturePhotoOutput()
         if let photoOutput = photoOutput, captureSession.canAddOutput(photoOutput) {
             captureSession.addOutput(photoOutput)
         }
-
+        
         videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         videoPreviewLayer?.videoGravity = .resizeAspectFill
         videoPreviewLayer?.frame = view.layer.bounds
-
+        
         if let videoPreviewLayer = videoPreviewLayer {
             view.layer.addSublayer(videoPreviewLayer)
         }
-
+        
         captureSession.startRunning()
     }
     
@@ -70,10 +70,10 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate, CLL
             object: nil
         )
     }
-
+    
     @objc private func orientationDidChange() {
         guard let connection = videoPreviewLayer?.connection, connection.isVideoOrientationSupported else { return }
-
+        
         var phoneOrientation: AVCaptureVideoOrientation
         switch UIDevice.current.orientation {
         case .landscapeLeft:
@@ -85,17 +85,17 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate, CLL
         default:
             phoneOrientation = .portrait
         }
-
+        
         connection.videoOrientation = phoneOrientation
     }
-
+    
     private func setupLocationManager() {
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
     }
-
+    
     private func showPermissionAlert() {
         let alert = UIAlertController(
             title: "Permission refusée",
@@ -107,17 +107,17 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate, CLL
         
         present(alert, animated: true)
     }
-
+    
     func capturePhoto() {
         guard currentLocation != nil else {
             showLocationUnavailableAlert()
             return
         }
-
+        
         let settings = AVCapturePhotoSettings()
         photoOutput?.capturePhoto(with: settings, delegate: self)
     }
-
+    
     private func showLocationUnavailableAlert() {
         let alert = UIAlertController(
             title: "Localisation non disponible",
@@ -127,35 +127,35 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate, CLL
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
-
+    
     private func checkIfReadyToCapture() {
         if let image = capturedImage, let location = currentLocation {
             onPhotoCaptured?(image, location.coordinate.latitude, location.coordinate.longitude)
             capturedImage = nil
         }
     }
-
+    
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         if let error = error {
             print("Erreur lors de la capture de la photo : \(error.localizedDescription)")
             return
         }
-
+        
         guard let imageData = photo.fileDataRepresentation(),
               let image = UIImage(data: imageData) else {
             print("Impossible de récupérer l'image")
             return
         }
-
+        
         capturedImage = image
         checkIfReadyToCapture()
     }
-
+    
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         currentLocation = locations.last
         checkIfReadyToCapture()
     }
-
+    
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         videoPreviewLayer?.frame = view.layer.bounds

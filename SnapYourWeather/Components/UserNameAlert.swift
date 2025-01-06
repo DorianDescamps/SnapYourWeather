@@ -5,11 +5,11 @@ struct UserNameAlert: UIViewControllerRepresentable {
     @EnvironmentObject var authViewModel: AuthViewModel
     
     @Binding var isPresented: Bool
-
+    
     func makeUIViewController(context: Context) -> UIViewController {
         return UIViewController()
     }
-
+    
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         if isPresented {
             presentAlert(
@@ -19,10 +19,10 @@ struct UserNameAlert: UIViewControllerRepresentable {
             )
         }
     }
-
+    
     private func presentAlert(on viewController: UIViewController, message: String, isError: Bool) {
         let alert = UIAlertController(title: "Un pseud0 ?", message: nil, preferredStyle: .alert)
-
+        
         let attributedMessage = NSAttributedString(
             string: message,
             attributes: [
@@ -31,16 +31,16 @@ struct UserNameAlert: UIViewControllerRepresentable {
             ]
         )
         alert.setValue(attributedMessage, forKey: "attributedMessage")
-
+        
         alert.addTextField { textField in
             textField.placeholder = "ton_pseudo"
             textField.keyboardType = .asciiCapable
             textField.autocapitalizationType = .none
         }
-
+        
         let submitAction = UIAlertAction(title: "Valider", style: .default) { _ in
             guard let input = alert.textFields?.first?.text else { return }
-
+            
             authViewModel.setUserDetails(userName: input) { success, errorMessage in
                 DispatchQueue.main.async {
                     if success {
@@ -55,9 +55,9 @@ struct UserNameAlert: UIViewControllerRepresentable {
                 }
             }
         }
-
+        
         alert.addAction(submitAction)
-
+        
         DispatchQueue.main.async {
             viewController.present(alert, animated: true, completion: nil)
         }
