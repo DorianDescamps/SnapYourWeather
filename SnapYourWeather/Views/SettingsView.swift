@@ -14,58 +14,60 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 30) {
-                VStack(alignment: .leading, spacing: 15) {
-                    VStack(alignment: .leading) {
-                        Text("Adresse e-mail")
-                            .font(.headline)
-                        Text(email)
-                    }
-                    
-                    VStack(alignment: .leading) {
-                        Text("Nom d'utilisateur")
-                            .font(.headline)
-                        Text(userName)
-                    }
-                    
-                    if let errorMessage = errorMessage {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                    }
-                    
-                    Button("Se déconnecter") {
-                        authViewModel.expireToken { success, error in
-                            if success {
-                                UserRepository.unpersistToken()
-                                shouldRefresh = true
-                                dismiss()
-                            } else if let error = error {
-                                self.errorMessage = error
+            ScrollView {
+                VStack(spacing: 30) {
+                    VStack(alignment: .leading, spacing: 15) {
+                        VStack(alignment: .leading) {
+                            Text("Adresse e-mail")
+                                .font(.headline)
+                            Text(email)
+                        }
+                        
+                        VStack(alignment: .leading) {
+                            Text("Nom d'utilisateur")
+                                .font(.headline)
+                            Text(userName)
+                        }
+                        
+                        if let errorMessage = errorMessage {
+                            Text(errorMessage)
+                                .foregroundColor(.red)
+                        }
+                        
+                        Button("Se déconnecter") {
+                            authViewModel.expireToken { success, error in
+                                if success {
+                                    UserRepository.unpersistToken()
+                                    shouldRefresh = true
+                                    dismiss()
+                                } else if let error = error {
+                                    self.errorMessage = error
+                                }
                             }
                         }
+                        .buttonStyle(PrimaryButtonStyle(backgroundColor: .red))
                     }
-                    .buttonStyle(PrimaryButtonStyle(backgroundColor: .red))
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                Spacer()
-
-                Button("Fermer") {
-                    dismiss()
-                }
-                .buttonStyle(SecondaryButtonStyle())
-            }
-            .navigationTitle("Paramètres")
-            .padding()
-            .onAppear {
-                authViewModel.fetchUserDetails { success, datas, error in
-                    if success {
-                        self.email = datas!["email_address"] as! String
-                        self.userName = datas!["user_name"] as! String
-                    } else {
-                        UserRepository.unpersistToken()
-                        shouldRefresh = true
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Spacer()
+                    
+                    Button("Fermer") {
                         dismiss()
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                }
+                .navigationTitle("Paramètres")
+                .padding()
+                .onAppear {
+                    authViewModel.fetchUserDetails { success, datas, error in
+                        if success {
+                            self.email = datas!["email_address"] as! String
+                            self.userName = datas!["user_name"] as! String
+                        } else {
+                            UserRepository.unpersistToken()
+                            shouldRefresh = true
+                            dismiss()
+                        }
                     }
                 }
             }

@@ -20,7 +20,7 @@ struct EntryView: View {
                     }
                         .buttonStyle(SecondaryButtonStyle())
                 }
-                .navigationTitle("Bienvenue")
+                .navigationTitle("Bienvenue ! ☀️")
                 .navigationDestination(for: String.self) { destination in
                     if destination == "SignInView" {
                         SignInView(navigationPath: $navigationPath, shouldRefresh: $shouldRefresh)
