@@ -75,11 +75,6 @@ class PicturesViewModel: ObservableObject {
     
     // MARK: - Envoyer une photo
     func uploadPicture(picture: UIImage, latitude: Double, longitude: Double, completion: @escaping (Bool, String?) -> Void) {
-        guard let imageData = picture.heicData else {
-            completion(false, "Impossible de convertir l'image au format HEIC.")
-            return
-        }
-
         let boundary = UUID().uuidString
         
         let headers = [
@@ -88,21 +83,21 @@ class PicturesViewModel: ObservableObject {
         
         var body = Data()
         
-        body.append("--\(boundary)\r\n")
-        body.append("Content-Disposition: form-data; name=\"picture\"; filename=\"picture.heic\"\r\n")
-        body.append("Content-Type: image/heic\r\n\r\n")
-        body.append(imageData)
-        body.append("\r\n")
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"picture\"; filename=\"picture.heic\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/heic\r\n\r\n".data(using: .utf8)!)
+        body.append(picture.heicData()!)
+        body.append("\r\n".data(using: .utf8)!)
         
-        body.append("--\(boundary)\r\n")
-        body.append("Content-Disposition: form-data; name=\"latitude\"\r\n\r\n")
-        body.append("\(latitude)\r\n")
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"latitude\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(latitude)\r\n".data(using: .utf8)!)
         
-        body.append("--\(boundary)\r\n")
-        body.append("Content-Disposition: form-data; name=\"longitude\"\r\n\r\n")
-        body.append("\(longitude)\r\n")
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"longitude\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(longitude)\r\n".data(using: .utf8)!)
         
-        body.append("--\(boundary)--\r\n")
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
         
         performRequest(method: "PUT", endpoint: .pictures, headers: headers, body: body) { _, response, error in
             guard error == nil, let response = response else {
@@ -124,31 +119,6 @@ class PicturesViewModel: ObservableObject {
             default:
                 completion(false, "Erreur inattendue (code \(response.statusCode)).")
             }
-        }
-    }
-}
-
-extension UIImage {
-    var heicData: Data? {
-        let options: NSDictionary = [
-            kCGImageDestinationLossyCompressionQuality: 0.8
-        ]
-        guard let cgImage = self.cgImage else { return nil }
-        let data = NSMutableData()
-        guard let destination = CGImageDestinationCreateWithData(
-            data, AVFileType.heic as CFString, 1, nil
-        ) else {
-            return nil
-        }
-        CGImageDestinationAddImage(destination, cgImage, options)
-        return CGImageDestinationFinalize(destination) ? data as Data : nil
-    }
-}
-
-extension Data {
-    mutating func append(_ string: String) {
-        if let data = string.data(using: .utf8) {
-            append(data)
         }
     }
 }
