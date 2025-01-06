@@ -60,7 +60,10 @@ struct MapView: View {
                 }
             }
         }
-        .sheet(isPresented: $isDetailPresented) {
+        .sheet(isPresented: Binding(
+            get: { isDetailPresented },
+            set: { isDetailPresented = $0 }
+        )) {
             if let pictureSelected = pictureSelected {
                 PictureDetailView(picture: pictureSelected)
             }

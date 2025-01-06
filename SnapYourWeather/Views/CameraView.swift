@@ -40,9 +40,12 @@ struct CameraEntry: View {
                     .foregroundColor(.white)
             }
         }
-        .sheet(isPresented: $showPreview) {
-            if let image = capturedImage {
-                PhotoPreview(image: image, isPresented: $showPreview)
+        .sheet(isPresented: Binding(
+            get: { showPreview },
+            set: { showPreview = $0 }
+        )) {
+            if let capturedImage = capturedImage {
+                PhotoPreview(image: capturedImage)
             }
         }
         .navigationBarTitle("Caméra", displayMode: .inline)

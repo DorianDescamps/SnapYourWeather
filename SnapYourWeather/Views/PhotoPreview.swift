@@ -1,8 +1,9 @@
 import SwiftUI
 
 struct PhotoPreview: View {
+    @Environment(\.dismiss) private var dismiss
+    
     let image: UIImage
-    @Binding var isPresented: Bool
 
     var body: some View {
         VStack (spacing: 30) {
@@ -18,7 +19,7 @@ struct PhotoPreview: View {
             Spacer()
             
             Button("Fermer") {
-                isPresented = false
+                dismiss()
             }
                 .buttonStyle(SecondaryButtonStyle())
         }

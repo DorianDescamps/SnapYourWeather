@@ -3,8 +3,6 @@ import SwiftUI
 struct MainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     
-    @Environment(\.presentationMode) var presentationMode
-    
     @Binding var navigationPath: NavigationPath
     @Binding var shouldRefresh: Bool
 
@@ -34,7 +32,7 @@ struct MainView: View {
                         }
                     } else {
                         UserRepository.unpersistToken()
-                        presentationMode.wrappedValue.dismiss()
+                        navigationPath = NavigationPath()
                     }
                 }
             }
@@ -50,7 +48,10 @@ struct MainView: View {
                             }
                         }
                     }
-                    .sheet(isPresented: $showSettings) {
+                    .sheet(isPresented: Binding(
+                        get: { showSettings },
+                        set: { showSettings = $0 }
+                    )) {
                         SettingsView(navigationPath: $navigationPath, shouldRefresh: $shouldRefresh)
                     }
                     .edgesIgnoringSafeArea(.bottom)
