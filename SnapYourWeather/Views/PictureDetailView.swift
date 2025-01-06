@@ -3,7 +3,7 @@ import SwiftUI
 struct PictureDetailView: View {
     @StateObject private var picturesViewModel = PicturesViewModel()
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) private var dismiss
     
     @State private var pictureBufferEndpoint = "/pictures/"
     
@@ -88,7 +88,7 @@ struct PictureDetailView: View {
             Spacer()
 
             Button("Fermer") {
-                presentationMode.wrappedValue.dismiss()
+                dismiss()
             }
             .buttonStyle(SecondaryButtonStyle())
         }

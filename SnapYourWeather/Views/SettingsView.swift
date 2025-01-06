@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) private var dismiss
 
     @Binding var navigationPath: NavigationPath
     @Binding var shouldRefresh: Bool
@@ -38,7 +38,7 @@ struct SettingsView: View {
                             if success {
                                 UserRepository.unpersistToken()
                                 shouldRefresh = true
-                                presentationMode.wrappedValue.dismiss()
+                                dismiss()
                             } else if let error = error {
                                 self.errorMessage = error
                             }
@@ -51,7 +51,7 @@ struct SettingsView: View {
                 Spacer()
 
                 Button("Fermer") {
-                    presentationMode.wrappedValue.dismiss()
+                    dismiss()
                 }
                 .buttonStyle(SecondaryButtonStyle())
             }
@@ -65,7 +65,7 @@ struct SettingsView: View {
                     } else {
                         UserRepository.unpersistToken()
                         shouldRefresh = true
-                        presentationMode.wrappedValue.dismiss()
+                        dismiss()
                     }
                 }
             }

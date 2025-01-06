@@ -22,7 +22,7 @@ struct MapView: View {
                     if let latitude = Double(picture.latitude),
                        let longitude = Double(picture.longitude),
                        let weatherIconURL = URL(string: picture.weatherDetails.icon_url) {
-                        Annotation("Picture marker", coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude)) {
+                        Annotation("@\(picture.user.user_name)", coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude)) {
                             AsyncImage(url: weatherIconURL) { phase in
                                 switch phase {
                                 case .empty:
@@ -54,13 +54,16 @@ struct MapView: View {
         }
         .navigationBarTitle("Carte", displayMode: .inline)
         .onAppear {
-            picturesViewModel.fetchPictures() { success, pictures, _ in
+            picturesViewModel.getPictures() { success, pictures, _ in
                 if success {
                     self.pictures = pictures!
                 }
             }
         }
-        .sheet(isPresented: $isDetailPresented) {
+        .sheet(isPresented: Binding(
+            get: { isDetailPresented },
+            set: { isDetailPresented = $0 }
+        )) {
             if let pictureSelected = pictureSelected {
                 PictureDetailView(picture: pictureSelected)
             }

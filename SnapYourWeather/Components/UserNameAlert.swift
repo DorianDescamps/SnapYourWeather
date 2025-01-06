@@ -26,7 +26,7 @@ struct UserNameAlert: UIViewControllerRepresentable {
         let attributedMessage = NSAttributedString(
             string: message,
             attributes: [
-                .foregroundColor: isError ? UIColor.red : UIColor.black,
+                .foregroundColor: isError ? UIColor.red : UIColor.label,
                 .font: UIFont.systemFont(ofSize: 14)
             ]
         )
