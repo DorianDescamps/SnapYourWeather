@@ -45,7 +45,7 @@ struct PrimaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.title2)
+            .font(.headline)
             .padding()
             .frame(maxWidth: .infinity)
             .background(configuration.isPressed ? backgroundColor.opacity(0.7) : backgroundColor)
@@ -57,7 +57,7 @@ struct PrimaryButtonStyle: ButtonStyle {
 struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.title2)
+            .font(.headline)
             .padding()
             .frame(maxWidth: .infinity)
             .foregroundColor(configuration.isPressed ? .blue.opacity(0.7) : .blue)

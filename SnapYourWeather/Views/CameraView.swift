@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import CoreLocation
 
 extension Notification.Name {
     static let capturePhoto = Notification.Name("capturePhoto")
@@ -7,15 +8,20 @@ extension Notification.Name {
 
 struct CameraEntry: View {
     @State private var cameraController: CameraViewController?
-    @State private var capturedImage: UIImage? = nil
+    @State private var picture: UIImage? = nil
+    @State private var latitude: Double? = nil
+    @State private var longitude: Double? = nil
     @State private var showPreview = false
 
     var body: some View {
         ZStack {
             CameraViewControllerRepresentable { controller in
                 self.cameraController = controller
-                controller.onPhotoCaptured = { image in
-                    self.capturedImage = image
+                
+                controller.onPhotoCaptured = { image, latitude, longitude in
+                    self.picture = image
+                    self.latitude = latitude
+                    self.longitude = longitude
                     self.showPreview = true
                 }
             }
@@ -44,8 +50,10 @@ struct CameraEntry: View {
             get: { showPreview },
             set: { showPreview = $0 }
         )) {
-            if let capturedImage = capturedImage {
-                PhotoPreview(image: capturedImage)
+            if let picture = picture,
+               let latitude = latitude,
+               let longitude = longitude {
+                PicturePreviewView(picture: picture, latitude: latitude, longitude: longitude)
             }
         }
         .navigationBarTitle("Caméra", displayMode: .inline)
@@ -64,16 +72,20 @@ struct CameraViewControllerRepresentable: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: CameraViewController, context: Context) {}
 }
 
-class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
+class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate, CLLocationManagerDelegate {
     private var captureSession: AVCaptureSession?
     private var videoPreviewLayer: AVCaptureVideoPreviewLayer?
     private var photoOutput: AVCapturePhotoOutput?
+    private let locationManager = CLLocationManager()
+    private var currentLocation: CLLocation?
+    private var capturedImage: UIImage?
 
-    var onPhotoCaptured: ((UIImage) -> Void)?
+    var onPhotoCaptured: ((UIImage, Double, Double) -> Void)?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         requestCameraAccess()
+        setupLocationManager()
     }
 
     private func requestCameraAccess() {
@@ -119,10 +131,17 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
         captureSession.startRunning()
     }
 
+    private func setupLocationManager() {
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+    }
+
     private func showPermissionAlert() {
         let alert = UIAlertController(
             title: "Permission refusée",
-            message: "Veuillez activer l'accès à la caméra dans les réglages de l'application.",
+            message: "Veuillez activer l'accès à la caméra et à la localisation dans les réglages de l'application.",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default))
@@ -130,8 +149,32 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     }
 
     func capturePhoto() {
+        guard currentLocation != nil else {
+            print("Localisation non disponible. Essayez à nouveau.")
+            showLocationUnavailableAlert()
+            return
+        }
+
         let settings = AVCapturePhotoSettings()
         photoOutput?.capturePhoto(with: settings, delegate: self)
+    }
+
+    private func showLocationUnavailableAlert() {
+        let alert = UIAlertController(
+            title: "Localisation non disponible",
+            message: "Nous ne pouvons pas capturer votre position actuelle. Veuillez vérifier vos paramètres de localisation.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
+    private func checkIfReadyToCapture() {
+        if let image = capturedImage, let location = currentLocation {
+            onPhotoCaptured?(image, location.coordinate.latitude, location.coordinate.longitude)
+            // Reset after use
+            capturedImage = nil
+        }
     }
 
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
@@ -146,7 +189,13 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             return
         }
 
-        onPhotoCaptured?(image)
+        capturedImage = image
+        checkIfReadyToCapture()
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        currentLocation = locations.last
+        checkIfReadyToCapture()
     }
 
     override func viewWillLayoutSubviews() {
