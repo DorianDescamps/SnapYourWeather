@@ -87,7 +87,6 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate, CLL
         }
 
         connection.videoOrientation = phoneOrientation
-        print("Orientation vidéo mise à jour : \(phoneOrientation.rawValue)")
     }
 
     private func setupLocationManager() {
