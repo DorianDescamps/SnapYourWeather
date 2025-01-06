@@ -21,7 +21,7 @@ class PicturesViewModel: ObservableObject {
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        if let token = TokenManager.shared.getToken() {
+        if let token = UserRepository.getToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 

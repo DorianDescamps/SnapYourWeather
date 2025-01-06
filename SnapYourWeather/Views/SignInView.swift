@@ -4,6 +4,7 @@ struct SignInView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     
     @Binding var navigationPath: NavigationPath
+    @Binding var shouldRefresh: Bool
     
     @State private var email = ""
     @State private var password = ""
@@ -38,6 +39,7 @@ struct SignInView: View {
             Button("Se connecter") {
                 authViewModel.getToken(email: email, password: password) { success, errorMessage in
                     if (success) {
+                        shouldRefresh = true
                         navigationPath.removeLast(navigationPath.count)
                     } else {
                         self.errorMessage = errorMessage

@@ -4,6 +4,9 @@ struct MainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     
     @Environment(\.presentationMode) var presentationMode
+    
+    @Binding var navigationPath: NavigationPath
+    @Binding var shouldRefresh: Bool
 
     @State private var selectedTab: Tab = .camera
     @State private var showSettings = false
@@ -30,7 +33,7 @@ struct MainView: View {
                             showUserNameAlert = true
                         }
                     } else {
-                        TokenManager.shared.unpersistToken()
+                        UserRepository.unpersistToken()
                         presentationMode.wrappedValue.dismiss()
                     }
                 }
@@ -48,12 +51,18 @@ struct MainView: View {
                         }
                     }
                     .sheet(isPresented: $showSettings) {
-                        SettingsView()
+                        SettingsView(navigationPath: $navigationPath, shouldRefresh: $shouldRefresh)
                     }
                     .edgesIgnoringSafeArea(.bottom)
                 
                 UserNameAlert(isPresented: $showUserNameAlert)
                     .frame(width: 0, height: 0)
+            }
+        }
+        .onChange(of: shouldRefresh) { _, newValue in
+            if newValue {
+                shouldRefresh = false
+                navigationPath = NavigationPath()
             }
         }
     }
