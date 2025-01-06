@@ -42,6 +42,13 @@ struct SettingsView: View {
                     .buttonStyle(PrimaryButtonStyle(backgroundColor: .red))
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Spacer()
+
+                Button("Fermer") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .buttonStyle(SecondaryButtonStyle())
             }
             .navigationTitle("Paramètres")
             .padding()

@@ -16,9 +16,9 @@ class PicturesViewModel: ObservableObject {
         pathParameter: String? = nil,
         completion: @escaping (Data?, HTTPURLResponse?, Error?) -> Void
     ) {
-        let url = URL(string: EnvironmentConfig.baseURL + endpoint.rawValue + (pathParameter ?? ""))!
+        let URL_ = URL(string: EnvironmentConfig.baseURL + endpoint.rawValue + (pathParameter ?? ""))!
 
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: URL_)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
@@ -50,23 +50,6 @@ class PicturesViewModel: ObservableObject {
                 let pictures = try! JSONDecoder().decode([Picture].self, from: array)
                 
                 completion(true, pictures, nil)
-            default:
-                completion(false, nil, "Erreur inattendue (code \(response.statusCode)).")
-            }
-        }
-    }
-
-    // MARK: - Récupérer une image spécifique
-    func fetchPictureBuffer(fileName: String, completion: @escaping (Bool, Data?, String?) -> Void) {
-        performRequest(method: "GET", endpoint: .fetchPictureBuffer, pathParameter: fileName) { data, response, error in
-            guard error == nil, let response = response else {
-                completion(false, nil, "Impossible d'obtenir une réponse valide du serveur.")
-                return
-            }
-
-            switch response.statusCode {
-            case 200:
-                completion(true, data, nil)
             default:
                 completion(false, nil, "Erreur inattendue (code \(response.statusCode)).")
             }

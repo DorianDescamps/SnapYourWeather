@@ -26,9 +26,9 @@ class AuthViewModel: ObservableObject {
         body: [String: Any]? = nil,
         completion: @escaping (Data?, HTTPURLResponse?, Error?) -> Void
     ) {
-        let url = URL(string: EnvironmentConfig.baseURL + endpoint.rawValue)!
+        let URL_ = URL(string: EnvironmentConfig.baseURL + endpoint.rawValue)!
         
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: URL_)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         

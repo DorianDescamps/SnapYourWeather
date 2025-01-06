@@ -19,17 +19,18 @@ struct MapView: View {
         ZStack {
             Map(position: $cameraPosition) {
                 ForEach(pictures) { picture in
-                    if let lat = Double(picture.latitude),
-                       let lon = Double(picture.longitude),
-                       let iconURL = URL(string: picture.weatherDetails.icon_url) {
-                        Annotation("", coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lon)) {
-                            AsyncImage(url: iconURL) { phase in
+                    if let latitude = Double(picture.latitude),
+                       let longitude = Double(picture.longitude),
+                       let weatherIconURL = URL(string: picture.weatherDetails.icon_url) {
+                        Annotation("Picture marker", coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude)) {
+                            AsyncImage(url: weatherIconURL) { phase in
                                 switch phase {
                                 case .empty:
                                     ProgressView()
                                         .frame(width: 40, height: 40)
                                 case .success(let image):
-                                    image.resizable()
+                                    image
+                                        .resizable()
                                         .scaledToFit()
                                         .frame(width: 40, height: 40)
                                 case .failure:
@@ -53,17 +54,15 @@ struct MapView: View {
         }
         .navigationBarTitle("Carte", displayMode: .inline)
         .onAppear {
-            picturesViewModel.fetchPictures() { success, pictures, errorMessage in
+            picturesViewModel.fetchPictures() { success, pictures, _ in
                 if success {
                     self.pictures = pictures!
-                } else {
-                    print(errorMessage)
                 }
             }
         }
         .sheet(isPresented: $isDetailPresented) {
-            if let selected = pictureSelected {
-                PictureDetailView(picture: selected)
+            if let pictureSelected = pictureSelected {
+                PictureDetailView(picture: pictureSelected)
             }
         }
     }
