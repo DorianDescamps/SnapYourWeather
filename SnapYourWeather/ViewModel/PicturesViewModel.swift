@@ -6,7 +6,6 @@ class PicturesViewModel: ObservableObject {
     // MARK: - API Endpoints
     enum APIEndpoint: String {
         case fetchPictures = "/pictures"
-        case fetchPictureBuffer = "/pictures/"
     }
 
     // MARK: - Méthode générique pour les requêtes réseau
