@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SignInView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    
     @Binding var navigationPath: NavigationPath
     
     @State private var email = ""
@@ -9,13 +10,25 @@ struct SignInView: View {
     @State private var errorMessage: String? = nil
 
     var body: some View {
-        VStack(spacing: 30) {
-            TextField("Email", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocapitalization(.none)
+        VStack(alignment: .leading, spacing: 30) {
+            VStack(alignment: .leading, spacing: 15) {
+                Text("Email")
+                    .font(.headline)
+                
+                TextField("Email", text: $email)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+            }
 
-            SecureField("Mot de passe", text: $password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+            VStack(alignment: .leading, spacing: 15) {
+                Text("Mot de passe")
+                    .font(.headline)
+                
+                SecureField("Mot de passe", text: $password)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
 
             if (errorMessage != nil) {
                 Text(errorMessage!)
@@ -23,7 +36,7 @@ struct SignInView: View {
             }
 
             Button("Se connecter") {
-                authViewModel.getToken(email: email, password: password) { success, datas, errorMessage in
+                authViewModel.getToken(email: email, password: password) { success, errorMessage in
                     if (success) {
                         navigationPath.removeLast(navigationPath.count)
                     } else {
@@ -33,7 +46,7 @@ struct SignInView: View {
             }
             .buttonStyle(PrimaryButtonStyle())
         }
-        .padding()
         .navigationTitle("Connexion")
+        .padding()
     }
 }

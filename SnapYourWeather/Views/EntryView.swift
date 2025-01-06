@@ -1,13 +1,12 @@
 import SwiftUI
 
 struct EntryView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
     @State private var navigationPath = NavigationPath()
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            if let token = authViewModel.authToken, !token.isEmpty {
-                MainView(token: token)
+            if TokenManager.shared.tokenExists() {
+                MainView()
             } else {
                 VStack(spacing: 30) {
                     Button("Connexion") {
@@ -16,31 +15,33 @@ struct EntryView: View {
                     .buttonStyle(PrimaryButtonStyle())
 
                     Button("Inscription") {
-                        navigationPath.append("Signup")
+                        navigationPath.append("SignUp")
                     }
                     .buttonStyle(SecondaryButtonStyle())
                 }
-                .padding()
                 .navigationTitle("Bienvenue")
                 .navigationDestination(for: String.self) { destination in
                     if destination == "Login" {
                         SignInView(navigationPath: $navigationPath)
-                    } else if destination == "Signup" {
+                    } else if destination == "SignUp" {
                         SignUpView()
                     }
                 }
+                .padding()
             }
         }
     }
 }
 
 struct PrimaryButtonStyle: ButtonStyle {
+    var backgroundColor: Color = .blue
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.title2)
             .padding()
             .frame(maxWidth: .infinity)
-            .background(configuration.isPressed ? Color.blue.opacity(0.7) : Color.blue)
+            .background(configuration.isPressed ? backgroundColor.opacity(0.7) : backgroundColor)
             .foregroundColor(.white)
             .cornerRadius(10)
     }
@@ -52,8 +53,7 @@ struct SecondaryButtonStyle: ButtonStyle {
             .font(.title2)
             .padding()
             .frame(maxWidth: .infinity)
-            .background(configuration.isPressed ? Color.green.opacity(0.7) : Color.green)
-            .foregroundColor(.white)
+            .foregroundColor(configuration.isPressed ? .blue.opacity(0.7) : .blue)
             .cornerRadius(10)
     }
 }
