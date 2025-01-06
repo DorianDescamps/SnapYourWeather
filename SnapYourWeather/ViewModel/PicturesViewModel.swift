@@ -1,97 +1,75 @@
 import Foundation
-import SwiftUI
 import Combine
+import SwiftUI
 
 class PicturesViewModel: ObservableObject {
-    @Published var pictures: [Picture] = []
-    @Published var errorMessage: String = ""
-    
-    func fetchPictures() {
-        guard let token = TokenManager.shared.getToken() else {
-            errorMessage = "Aucun jeton disponible."
-            return
-        }
-        
-        guard let url = URL(string: EnvironmentConfig.baseURL + "/pictures") else {
-            errorMessage = "URL invalide."
-            return
-        }
-        
+    // MARK: - API Endpoints
+    enum APIEndpoint: String {
+        case fetchPictures = "/pictures"
+        case fetchPictureBuffer = "/pictures/"
+    }
+
+    // MARK: - Méthode générique pour les requêtes réseau
+    private func performRequest(
+        method: String,
+        endpoint: APIEndpoint,
+        pathParameter: String? = nil,
+        completion: @escaping (Data?, HTTPURLResponse?, Error?) -> Void
+    ) {
+        let url = URL(string: EnvironmentConfig.baseURL + endpoint.rawValue + (pathParameter ?? ""))!
+
         var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        if let token = TokenManager.shared.getToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { body, response, error in
             DispatchQueue.main.async {
-                if let error = error {
-                    self.errorMessage = "Erreur réseau : \(error.localizedDescription)"
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse,
-                      let data = data else {
-                    self.errorMessage = "Réponse serveur invalide."
-                    return
-                }
-                
-                guard httpResponse.statusCode == 200 else {
-                    self.errorMessage = "Erreur inattendue (code \(httpResponse.statusCode))."
-                    return
-                }
-                
-                do {
-                    if let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                       let datas = jsonObject["datas"] as? [[String: Any]] {
-                        let jsonData = try JSONSerialization.data(withJSONObject: datas, options: [])
-                        let decodedPictures = try JSONDecoder().decode([Picture].self, from: jsonData)
-                        self.pictures = decodedPictures
-                    } else {
-                        self.errorMessage = "Format de réponse inattendu."
-                    }
-                } catch {
-                    self.errorMessage = "Impossible de parser la réponse JSON : \(error.localizedDescription)"
-                }
+                completion(body, response as? HTTPURLResponse, error)
             }
         }
         .resume()
     }
-    
-    func fetchPictureImage(fileName: String, completion: @escaping (Data?) -> Void) {
-        guard let token = TokenManager.shared.getToken() else {
-            self.errorMessage = "Aucun jeton disponible."
-            completion(nil)
-            return
-        }
-        
-        guard let url = URL(string: EnvironmentConfig.baseURL + "/pictures/\(fileName)") else {
-            self.errorMessage = "URL invalide pour la photo."
-            completion(nil)
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.errorMessage = "Erreur réseau pour l'image : \(error.localizedDescription)"
-                    completion(nil)
-                    return
-                }
+
+    // MARK: - Récupérer les photos
+    func fetchPictures(completion: @escaping (Bool, [Picture]?, String?) -> Void) {
+        performRequest(method: "GET", endpoint: .fetchPictures) { data, response, error in
+            guard error == nil, let response = response else {
+                completion(false, nil, "Impossible d'obtenir une réponse valide du serveur.")
+                return
+            }
+
+            switch response.statusCode {
+            case 200:
+                let body = try! JSONSerialization.jsonObject(with: data!, options: []) as! [String: Any]
+                let datas = body["datas"] as! [[String: Any]]
+                let array = try! JSONSerialization.data(withJSONObject: datas, options: [])
+                let pictures = try! JSONDecoder().decode([Picture].self, from: array)
                 
-                guard let httpResponse = response as? HTTPURLResponse,
-                      let data = data,
-                      httpResponse.statusCode == 200 else {
-                    self.errorMessage = "Impossible de récupérer l'image (code ou réponse invalide)."
-                    completion(nil)
-                    return
-                }
-                
-                completion(data)
+                completion(true, pictures, nil)
+            default:
+                completion(false, nil, "Erreur inattendue (code \(response.statusCode)).")
             }
         }
-        .resume()
+    }
+
+    // MARK: - Récupérer une image spécifique
+    func fetchPictureBuffer(fileName: String, completion: @escaping (Bool, Data?, String?) -> Void) {
+        performRequest(method: "GET", endpoint: .fetchPictureBuffer, pathParameter: fileName) { data, response, error in
+            guard error == nil, let response = response else {
+                completion(false, nil, "Impossible d'obtenir une réponse valide du serveur.")
+                return
+            }
+
+            switch response.statusCode {
+            case 200:
+                completion(true, data, nil)
+            default:
+                completion(false, nil, "Erreur inattendue (code \(response.statusCode)).")
+            }
+        }
     }
 }

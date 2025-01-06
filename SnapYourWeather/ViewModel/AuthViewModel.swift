@@ -21,8 +21,8 @@ class AuthViewModel: ObservableObject {
     
     // MARK: - Méthode générique pour les requêtes réseau
     private func performRequest(
-        endpoint: APIEndpoint,
         method: String,
+        endpoint: APIEndpoint,
         body: [String: Any]? = nil,
         completion: @escaping (Data?, HTTPURLResponse?, Error?) -> Void
     ) {
@@ -52,7 +52,7 @@ class AuthViewModel: ObservableObject {
     func createAccount(email: String, completion: @escaping (Bool, String?) -> Void) {
         let body = ["email_address": email]
         
-        performRequest(endpoint: .createAccount, method: "POST", body: body) { _, response, error in
+        performRequest(method: "POST", endpoint: .createAccount, body: body) { _, response, error in
             guard error == nil, let response = response else {
                 completion(false, "Impossible d'obtenir une réponse valide du serveur.")
                 return
@@ -75,7 +75,7 @@ class AuthViewModel: ObservableObject {
     func requestTemporaryCode(email: String, completion: @escaping (Bool, String?) -> Void) {
         let body = ["email_address": email]
         
-        performRequest(endpoint: .requestTemporaryCode, method: "POST", body: body) { _, response, error in
+        performRequest(method: "POST", endpoint: .requestTemporaryCode, body: body) { _, response, error in
             guard error == nil, let response = response else {
                 completion(false, "Impossible d'obtenir une réponse valide du serveur.")
                 return
@@ -102,7 +102,7 @@ class AuthViewModel: ObservableObject {
             "password": password
         ]
         
-        performRequest(endpoint: .setPassword, method: "POST", body: body) { _, response, error in
+        performRequest(method: "POST", endpoint: .setPassword, body: body) { _, response, error in
             guard error == nil, let response = response else {
                 completion(false, "Impossible d'obtenir une réponse valide du serveur.")
                 return
@@ -130,7 +130,7 @@ class AuthViewModel: ObservableObject {
             "password": password
         ]
         
-        performRequest(endpoint: .getToken, method: "POST", body: body) { data, response, error in
+        performRequest(method: "POST", endpoint: .getToken, body: body) { data, response, error in
             guard error == nil, let response = response, let data = data else {
                 completion(false, "Impossible d'obtenir une réponse valide du serveur.")
                 return
@@ -159,7 +159,7 @@ class AuthViewModel: ObservableObject {
     
     // MARK: - Supprimer le token
     func expireToken(completion: @escaping (Bool, String?) -> Void) {
-        performRequest(endpoint: .getToken, method: "DELETE") { _, response, error in
+        performRequest(method: "DELETE", endpoint: .getToken) { _, response, error in
             guard error == nil, let response = response else {
                 completion(false, "Impossible d'obtenir une réponse valide du serveur.")
                 return
@@ -182,7 +182,7 @@ class AuthViewModel: ObservableObject {
     
     // MARK: - Récupérer les détails de l'utilisateur connecté
     func fetchUserDetails(completion: @escaping (Bool, [String: Any]?, String?) -> Void) {
-        performRequest(endpoint: .userDetails, method: "GET") { data, response, error in
+        performRequest(method: "GET", endpoint: .userDetails) { data, response, error in
             guard error == nil, let response = response else {
                 completion(false, nil, "Impossible d'obtenir une réponse valide du serveur.")
                 return
@@ -208,7 +208,7 @@ class AuthViewModel: ObservableObject {
     func setUserDetails(userName: String, completion: @escaping (Bool, String?) -> Void) {
         let body = ["user_name": userName]
             
-        performRequest(endpoint: .userDetails, method: "POST", body: body) { _, response, error in
+        performRequest(method: "POST", endpoint: .userDetails, body: body) { _, response, error in
             guard error == nil, let response = response else {
                 completion(false, "Impossible d'obtenir une réponse valide du serveur.")
                 return

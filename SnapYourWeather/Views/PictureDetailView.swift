@@ -1,25 +1,18 @@
-//
-//  PictureDetailView.swift
-//  SnapYourWeather
-//
-//  Created by etudiant on 05/01/2025.
-//
-
 import SwiftUI
 
 struct PictureDetailView: View {
+    @StateObject private var picturesViewModel = PicturesViewModel()
+    
     @Environment(\.presentationMode) var presentationMode
-    @ObservedObject var picturesVM: PicturesViewModel
     
     let picture: Picture
     
-    @State private var mainImageData: Data? = nil
+    @State private var pictureBuffer: Data? = nil
     @State private var iconImageData: Data? = nil
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                
+            VStack(spacing: 30) {
                 HStack {
                     Text(picture.weatherDetails.city)
                         .font(.title)
@@ -56,7 +49,7 @@ struct PictureDetailView: View {
                 Divider()
                     .background(Color.gray.opacity(0.4))
                 
-                if let data = mainImageData, let uiImage = UIImage(data: data) {
+                if let data = pictureBuffer, let uiImage = UIImage(data: data) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFit()
@@ -98,23 +91,21 @@ struct PictureDetailView: View {
                     }.resume()
                 }
                 
-                picturesVM.fetchPictureImage(fileName: picture.fileName) { data in
-                    self.mainImageData = data
+                picturesViewModel.fetchPictureBuffer(fileName: picture.fileName) { success, pictureBuffer, error in
+                    self.pictureBuffer = pictureBuffer
                 }
             }
         }
     }
     
     private func formatDate(_ isoDate: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let inputFormatter = ISO8601DateFormatter()
+        inputFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let date = inputFormatter.date(from: isoDate)!
         
-        if let date = formatter.date(from: isoDate) {
-            let outputFormatter = DateFormatter()
-            outputFormatter.dateFormat = "dd/MM/yyyy HH:mm"
-            return outputFormatter.string(from: date)
-        } else {
-            return "Date invalide"
-        }
+        let outputFormatter = DateFormatter()
+        outputFormatter.dateFormat = "dd/MM/yyyy HH:mm"
+        
+        return outputFormatter.string(from: date)
     }
 }

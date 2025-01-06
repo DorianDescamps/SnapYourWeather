@@ -2,9 +2,8 @@ import SwiftUI
 import MapKit
 
 struct MapView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
+    @StateObject private var picturesViewModel = PicturesViewModel()
     
-    @StateObject private var picturesVM: PicturesViewModel
     @State private var cameraPosition = MapCameraPosition.region(
         MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: 48.8566, longitude: 2.3522),
@@ -12,17 +11,14 @@ struct MapView: View {
         )
     )
     
+    @State private var pictures: [Picture] = []
     @State private var isDetailPresented: Bool = false
     @State private var pictureSelected: Picture? = nil
-    
-    init() {
-        _picturesVM = StateObject(wrappedValue: PicturesViewModel())
-    }
     
     var body: some View {
         ZStack {
             Map(position: $cameraPosition) {
-                ForEach(picturesVM.pictures) { picture in
+                ForEach(pictures) { picture in
                     if let lat = Double(picture.latitude),
                        let lon = Double(picture.longitude),
                        let iconURL = URL(string: picture.weatherDetails.icon_url) {
@@ -57,11 +53,17 @@ struct MapView: View {
         }
         .navigationBarTitle("Carte", displayMode: .inline)
         .onAppear {
-            picturesVM.fetchPictures()
+            picturesViewModel.fetchPictures() { success, pictures, errorMessage in
+                if success {
+                    self.pictures = pictures!
+                } else {
+                    print(errorMessage)
+                }
+            }
         }
         .sheet(isPresented: $isDetailPresented) {
             if let selected = pictureSelected {
-                PictureDetailView(picturesVM: picturesVM, picture: selected)
+                PictureDetailView(picture: selected)
             }
         }
     }
