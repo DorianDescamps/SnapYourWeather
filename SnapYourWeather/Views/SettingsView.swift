@@ -3,8 +3,11 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) private var dismiss
 
+    @Binding var navigationPath: NavigationPath
+    @Binding var shouldRefresh: Bool
+    
     @State private var email: String = ""
     @State private var userName: String = ""
     @State private var errorMessage: String? = nil
@@ -33,7 +36,9 @@ struct SettingsView: View {
                     Button("Se déconnecter") {
                         authViewModel.expireToken { success, error in
                             if success {
-                                presentationMode.wrappedValue.dismiss()
+                                UserRepository.unpersistToken()
+                                shouldRefresh = true
+                                dismiss()
                             } else if let error = error {
                                 self.errorMessage = error
                             }
@@ -46,7 +51,7 @@ struct SettingsView: View {
                 Spacer()
 
                 Button("Fermer") {
-                    presentationMode.wrappedValue.dismiss()
+                    dismiss()
                 }
                 .buttonStyle(SecondaryButtonStyle())
             }
@@ -58,8 +63,9 @@ struct SettingsView: View {
                         self.email = datas!["email_address"] as! String
                         self.userName = datas!["user_name"] as! String
                     } else {
-                        TokenManager.shared.unpersistToken()
-                        presentationMode.wrappedValue.dismiss()
+                        UserRepository.unpersistToken()
+                        shouldRefresh = true
+                        dismiss()
                     }
                 }
             }

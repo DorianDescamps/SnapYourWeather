@@ -3,8 +3,6 @@ import Combine
 import SwiftUI
 
 class AuthViewModel: ObservableObject {
-    private let userRepository: UserRepository
-    
     // MARK: - API Endpoints
     enum APIEndpoint: String {
         case createAccount = "/account/create"
@@ -12,11 +10,6 @@ class AuthViewModel: ObservableObject {
         case setPassword = "/account/security/password"
         case getToken = "/account/security/token"
         case userDetails = "/account"
-    }
-    
-    // MARK: - Initialisation
-    init(userRepository: UserRepository = UserRepository()) {
-        self.userRepository = userRepository
     }
     
     // MARK: - Méthode générique pour les requêtes réseau
@@ -32,7 +25,7 @@ class AuthViewModel: ObservableObject {
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        if let token = TokenManager.shared.getToken() {
+        if let token = UserRepository.getToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         
@@ -142,7 +135,7 @@ class AuthViewModel: ObservableObject {
                 let datas = body["datas"] as! [String: Any]
                 let token = datas["value"] as! String
                 
-                TokenManager.shared.persistToken(token: token)
+                UserRepository.persistToken(token: token)
                 
                 completion(true, nil)
             case 400:
@@ -165,9 +158,10 @@ class AuthViewModel: ObservableObject {
                 return
             }
             
+            // TODO: Corriger l'erreur 400
             switch response.statusCode {
-            case 200:
-                TokenManager.shared.unpersistToken()
+            case 400:
+                UserRepository.unpersistToken()
                 
                 completion(true, nil)
             case 401:

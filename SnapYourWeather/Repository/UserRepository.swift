@@ -1,24 +1,21 @@
-//
-//  UserRepository.swift
-//  SnapYourWeather
-//
-//  Created by etudiant on 10/12/2024.
-//
-
 import Foundation
 
 class UserRepository {
-    static let tokenKey = "authToken"
+    private static let key = "token"
 
-    func saveToken(_ token: String) {
-        UserDefaults.standard.set(token, forKey: Self.tokenKey)
+    static func persistToken(token: String) {
+        UserDefaults.standard.set(token, forKey: key)
     }
     
-    func getSavedToken() -> String? {
-        UserDefaults.standard.string(forKey: Self.tokenKey)
+    static func unpersistToken() {
+        UserDefaults.standard.removeObject(forKey: key)
     }
     
-    func removeToken() {
-        UserDefaults.standard.removeObject(forKey: Self.tokenKey)
+    static func getToken() -> String? {
+        return UserDefaults.standard.string(forKey: key)
+    }
+    
+    static func tokenExists() -> Bool {
+        return getToken() != nil
     }
 }

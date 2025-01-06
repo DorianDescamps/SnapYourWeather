@@ -1,21 +1,28 @@
 import SwiftUI
 import AVFoundation
+import CoreLocation
 
 extension Notification.Name {
     static let capturePhoto = Notification.Name("capturePhoto")
 }
 
-struct CameraEntry: View {
+struct CameraView: View {
     @State private var cameraController: CameraViewController?
-    @State private var capturedImage: UIImage? = nil
+    @State private var picture: UIImage? = nil
+    @State private var latitude: Double? = nil
+    @State private var longitude: Double? = nil
     @State private var showPreview = false
 
     var body: some View {
         ZStack {
             CameraViewControllerRepresentable { controller in
                 self.cameraController = controller
-                controller.onPhotoCaptured = { image in
-                    self.capturedImage = image
+                
+                controller.onPhotoCaptured = { image, latitude, longitude in
+                    self.picture = image
+                    self.latitude = latitude
+                    self.longitude = longitude
+                    
                     self.showPreview = true
                 }
             }
@@ -24,15 +31,15 @@ struct CameraEntry: View {
 
             VStack {
                 Spacer()
+                
                 Button(action: {
                     cameraController?.capturePhoto()
                 }) {
                     Circle()
                         .fill(Color.white)
                         .frame(width: 70, height: 70)
-                        .shadow(radius: 10)
                 }
-                .padding(.bottom, 30)
+                .padding()
             }
 
             if ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil {
@@ -40,9 +47,14 @@ struct CameraEntry: View {
                     .foregroundColor(.white)
             }
         }
-        .sheet(isPresented: $showPreview) {
-            if let image = capturedImage {
-                PhotoPreview(image: image, isPresented: $showPreview)
+        .sheet(isPresented: Binding(
+            get: { showPreview },
+            set: { showPreview = $0 }
+        )) {
+            if let picture = picture,
+               let latitude = latitude,
+               let longitude = longitude {
+                PicturePreviewView(picture: picture, latitude: latitude, longitude: longitude)
             }
         }
         .navigationBarTitle("Caméra", displayMode: .inline)
@@ -59,95 +71,4 @@ struct CameraViewControllerRepresentable: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: CameraViewController, context: Context) {}
-}
-
-class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate {
-    private var captureSession: AVCaptureSession?
-    private var videoPreviewLayer: AVCaptureVideoPreviewLayer?
-    private var photoOutput: AVCapturePhotoOutput?
-
-    var onPhotoCaptured: ((UIImage) -> Void)?
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        requestCameraAccess()
-    }
-
-    private func requestCameraAccess() {
-        AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
-            DispatchQueue.main.async {
-                if granted {
-                    self?.setupCamera()
-                } else {
-                    self?.showPermissionAlert()
-                }
-            }
-        }
-    }
-
-    private func setupCamera() {
-        captureSession = AVCaptureSession()
-        captureSession?.sessionPreset = .photo
-
-        guard let captureSession = captureSession,
-              let backCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
-              let input = try? AVCaptureDeviceInput(device: backCamera) else {
-            print("Impossible de configurer la caméra.")
-            return
-        }
-
-        if captureSession.canAddInput(input) {
-            captureSession.addInput(input)
-        }
-
-        photoOutput = AVCapturePhotoOutput()
-        if let photoOutput = photoOutput, captureSession.canAddOutput(photoOutput) {
-            captureSession.addOutput(photoOutput)
-        }
-
-        videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        videoPreviewLayer?.videoGravity = .resizeAspectFill
-        videoPreviewLayer?.frame = view.layer.bounds
-
-        if let videoPreviewLayer = videoPreviewLayer {
-            view.layer.addSublayer(videoPreviewLayer)
-        }
-
-        captureSession.startRunning()
-    }
-
-    private func showPermissionAlert() {
-        let alert = UIAlertController(
-            title: "Permission refusée",
-            message: "Veuillez activer l'accès à la caméra dans les réglages de l'application.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
-
-    func capturePhoto() {
-        let settings = AVCapturePhotoSettings()
-        photoOutput?.capturePhoto(with: settings, delegate: self)
-    }
-
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        if let error = error {
-            print("Erreur lors de la capture de la photo : \(error.localizedDescription)")
-            return
-        }
-
-        guard let imageData = photo.fileDataRepresentation(),
-              let image = UIImage(data: imageData) else {
-            print("Impossible de récupérer l'image")
-            return
-        }
-
-        onPhotoCaptured?(image)
-    }
-
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-        videoPreviewLayer?.frame = view.layer.bounds
-    }
 }

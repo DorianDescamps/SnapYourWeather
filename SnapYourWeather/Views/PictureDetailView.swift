@@ -3,7 +3,9 @@ import SwiftUI
 struct PictureDetailView: View {
     @StateObject private var picturesViewModel = PicturesViewModel()
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) private var dismiss
+    
+    @State private var pictureBufferEndpoint = "/pictures/"
     
     @State public var picture: Picture
     @State private var weatherIconURL: URL?
@@ -86,14 +88,14 @@ struct PictureDetailView: View {
             Spacer()
 
             Button("Fermer") {
-                presentationMode.wrappedValue.dismiss()
+                dismiss()
             }
             .buttonStyle(SecondaryButtonStyle())
         }
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             self.weatherIconURL = URL(string: picture.weatherDetails.large_icon_url)
-            self.pictureURL = URL(string: EnvironmentConfig.baseURL + "/pictures/\(picture.fileName)")
+            self.pictureURL = URL(string: EnvironmentConfig.baseURL + pictureBufferEndpoint + picture.fileName)
         }
     }
     
