@@ -16,6 +16,7 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate, CLL
         super.viewDidLoad()
         requestCameraAccess()
         setupLocationManager()
+        startOrientationNotifications()
     }
 
     private func requestCameraAccess() {
@@ -58,6 +59,35 @@ class CameraViewController: UIViewController, AVCapturePhotoCaptureDelegate, CLL
         }
 
         captureSession.startRunning()
+    }
+    
+    private func startOrientationNotifications() {
+        UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(orientationDidChange),
+            name: UIDevice.orientationDidChangeNotification,
+            object: nil
+        )
+    }
+
+    @objc private func orientationDidChange() {
+        guard let connection = videoPreviewLayer?.connection, connection.isVideoOrientationSupported else { return }
+
+        var phoneOrientation: AVCaptureVideoOrientation
+        switch UIDevice.current.orientation {
+        case .landscapeLeft:
+            phoneOrientation = .landscapeRight
+        case .landscapeRight:
+            phoneOrientation = .landscapeLeft
+        case .portraitUpsideDown:
+            phoneOrientation = .portraitUpsideDown
+        default:
+            phoneOrientation = .portrait
+        }
+
+        connection.videoOrientation = phoneOrientation
+        print("Orientation vidéo mise à jour : \(phoneOrientation.rawValue)")
     }
 
     private func setupLocationManager() {
