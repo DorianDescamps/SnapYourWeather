@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    
     @Environment(\.presentationMode) var presentationMode
 
     @State private var email: String = ""
@@ -24,38 +25,37 @@ struct SettingsView: View {
                         Text(userName)
                     }
                     
-                    if (errorMessage != nil) {
-                        Text(errorMessage!)
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
                             .foregroundColor(.red)
                     }
                     
                     Button("Se déconnecter") {
-                        authViewModel.expireToken() { success, errorMessage in
-                            if (success) {
-                                authViewModel.unpersistToken()
+                        authViewModel.expireToken { success, error in
+                            if success {
                                 presentationMode.wrappedValue.dismiss()
-                            } else {
-                                print(errorMessage!)
+                            } else if let error = error {
+                                self.errorMessage = error
                             }
                         }
                     }
                     .buttonStyle(PrimaryButtonStyle(backgroundColor: .red))
                 }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-                .padding()
-                .navigationTitle("Paramètres")
-                .onAppear {
-                    authViewModel.fetchUserDetails { success, datas, errorMessage in
-                        if (success) {
-                            self.email = datas!["email_address"] as! String
-                            self.userName = datas!["user_name"] as! String
-                        } else {
-                            authViewModel.unpersistToken()
-                            presentationMode.wrappedValue.dismiss()
-                        }
+            .navigationTitle("Paramètres")
+            .padding()
+            .onAppear {
+                authViewModel.fetchUserDetails { success, datas, error in
+                    if success {
+                        self.email = datas!["email_address"] as! String
+                        self.userName = datas!["user_name"] as! String
+                    } else {
+                        TokenManager.shared.unpersistToken()
+                        presentationMode.wrappedValue.dismiss()
                     }
                 }
+            }
         }
     }
 }

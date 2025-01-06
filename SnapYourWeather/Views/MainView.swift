@@ -2,9 +2,9 @@ import SwiftUI
 
 struct MainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @Environment(\.presentationMode) var presentationMode
     
-    @State public var  token: String
+    @Environment(\.presentationMode) var presentationMode
+
     @State private var selectedTab: Tab = .camera
     @State private var showSettings = false
     @State private var showUserNameAlert = false
@@ -19,18 +19,18 @@ struct MainView: View {
             TabView(selection: $selectedTab) {
                 CameraEntry()
                     .tag(Tab.camera)
-                MapView(authViewModel: authViewModel)
+                MapView()
                     .tag(Tab.map)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .onAppear {
                 authViewModel.fetchUserDetails { success, datas, errorMessage in
-                    if (success) {
-                        if (datas!["user_name"] is NSNull) {
+                    if success {
+                        if datas?["user_name"] is NSNull {
                             showUserNameAlert = true
                         }
                     } else {
-                        authViewModel.unpersistToken()
+                        TokenManager.shared.unpersistToken()
                         presentationMode.wrappedValue.dismiss()
                     }
                 }

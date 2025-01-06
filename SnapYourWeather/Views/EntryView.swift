@@ -1,13 +1,12 @@
 import SwiftUI
 
 struct EntryView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
     @State private var navigationPath = NavigationPath()
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            if let token = authViewModel.authToken, !token.isEmpty {
-                MainView(token: token)
+            if TokenManager.shared.tokenExists() {
+                MainView()
             } else {
                 VStack(spacing: 30) {
                     Button("Connexion") {
@@ -20,7 +19,6 @@ struct EntryView: View {
                     }
                     .buttonStyle(SecondaryButtonStyle())
                 }
-                .padding()
                 .navigationTitle("Bienvenue")
                 .navigationDestination(for: String.self) { destination in
                     if destination == "Login" {
@@ -29,6 +27,7 @@ struct EntryView: View {
                         SignUpView()
                     }
                 }
+                .padding()
             }
         }
     }

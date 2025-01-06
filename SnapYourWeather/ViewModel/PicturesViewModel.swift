@@ -3,24 +3,17 @@ import SwiftUI
 import Combine
 
 class PicturesViewModel: ObservableObject {
-    
     @Published var pictures: [Picture] = []
     @Published var errorMessage: String = ""
     
-    private let authViewModel: AuthViewModel
-    
-    init(authViewModel: AuthViewModel) {
-        self.authViewModel = authViewModel
-    }
-    
     func fetchPictures() {
-        guard let token = authViewModel.authToken else {
-            self.errorMessage = "Token introuvable, veuillez vous reconnecter."
+        guard let token = TokenManager.shared.getToken() else {
+            errorMessage = "Aucun jeton disponible."
             return
         }
         
         guard let url = URL(string: EnvironmentConfig.baseURL + "/pictures") else {
-            self.errorMessage = "URL invalide."
+            errorMessage = "URL invalide."
             return
         }
         
@@ -49,7 +42,6 @@ class PicturesViewModel: ObservableObject {
                 do {
                     if let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                        let datas = jsonObject["datas"] as? [[String: Any]] {
-                        // Convertir JSON en tableau de Picture
                         let jsonData = try JSONSerialization.data(withJSONObject: datas, options: [])
                         let decodedPictures = try JSONDecoder().decode([Picture].self, from: jsonData)
                         self.pictures = decodedPictures
@@ -60,12 +52,13 @@ class PicturesViewModel: ObservableObject {
                     self.errorMessage = "Impossible de parser la réponse JSON : \(error.localizedDescription)"
                 }
             }
-        }.resume()
+        }
+        .resume()
     }
     
     func fetchPictureImage(fileName: String, completion: @escaping (Data?) -> Void) {
-        guard let token = authViewModel.authToken else {
-            self.errorMessage = "Token introuvable, veuillez vous reconnecter."
+        guard let token = TokenManager.shared.getToken() else {
+            self.errorMessage = "Aucun jeton disponible."
             completion(nil)
             return
         }
@@ -98,6 +91,7 @@ class PicturesViewModel: ObservableObject {
                 
                 completion(data)
             }
-        }.resume()
+        }
+        .resume()
     }
 }

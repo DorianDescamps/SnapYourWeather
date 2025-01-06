@@ -15,8 +15,8 @@ struct MapView: View {
     @State private var isDetailPresented: Bool = false
     @State private var pictureSelected: Picture? = nil
     
-    init(authViewModel: AuthViewModel) {
-        _picturesVM = StateObject(wrappedValue: PicturesViewModel(authViewModel: authViewModel))
+    init() {
+        _picturesVM = StateObject(wrappedValue: PicturesViewModel())
     }
     
     var body: some View {
