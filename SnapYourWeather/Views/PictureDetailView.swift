@@ -12,90 +12,92 @@ struct PictureDetailView: View {
     @State private var pictureURL: URL?
     
     var body: some View {
-        VStack(spacing: 30) {
-            HStack {
-                Text(picture.weatherDetails.city)
-                    .font(.title)
-                    .bold()
+        ScrollView {
+            VStack(spacing: 30) {
+                HStack {
+                    Text(picture.weatherDetails.city)
+                        .font(.title)
+                        .bold()
                     
-                Spacer()
+                    Spacer()
                     
-                VStack(alignment: .trailing) {
-                    HStack {
-                        AsyncImage(url: weatherIconURL) { phase in
-                            switch phase {
-                            case .empty:
-                                ProgressView()
-                                    .frame(width: 40, height: 40)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 40, height: 40)
-                            case .failure:
-                                Image(systemName: "xmark.circle")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 40, height: 40)
-                            @unknown default:
-                                EmptyView()
+                    VStack(alignment: .trailing) {
+                        HStack {
+                            AsyncImage(url: weatherIconURL) { phase in
+                                switch phase {
+                                case .empty:
+                                    ProgressView()
+                                        .frame(width: 40, height: 40)
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 40, height: 40)
+                                case .failure:
+                                    Image(systemName: "xmark.circle")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 40, height: 40)
+                                @unknown default:
+                                    EmptyView()
+                                }
                             }
-                        }
                             
-                        Text("\(Int(round(Double(picture.weatherDetails.feltTemperature)!)))°C")
-                            .font(.title3)
-                            .bold()
+                            Text("\(Int(round(Double(picture.weatherDetails.feltTemperature)!)))°C")
+                                .font(.title3)
+                                .bold()
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Text(picture.weatherDetails.description)
                             .foregroundColor(.secondary)
                     }
-                        
-                    Text(picture.weatherDetails.description)
+                }
+                .padding()
+                
+                Divider()
+                    .background(Color.gray.opacity(0.3))
+                
+                AsyncImage(url: pictureURL) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                            .frame(maxWidth: .infinity, maxHeight: 350)
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: .infinity, maxHeight: 350)
+                    case .failure:
+                        Image(systemName: "xmark.circle")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: .infinity, maxHeight: 350)
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+                
+                VStack(spacing: 15) {
+                    Text("@\(picture.user.user_name)")
+                        .foregroundColor(.secondary)
+                    
+                    Text(formatDate(picture.datetime))
                         .foregroundColor(.secondary)
                 }
-            }
-            .padding()
                 
-            Divider()
-                .background(Color.gray.opacity(0.3))
+                Spacer()
                 
-            AsyncImage(url: pictureURL) { phase in
-                switch phase {
-                case .empty:
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: 500)
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: .infinity, maxHeight: 500)
-                case .failure:
-                    Image(systemName: "xmark.circle")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: .infinity, maxHeight: 500)
-                @unknown default:
-                    EmptyView()
+                Button("Fermer") {
+                    dismiss()
                 }
+                .buttonStyle(SecondaryButtonStyle())
             }
-                
-            VStack(spacing: 15) {
-                Text("@\(picture.user.user_name)")
-                    .foregroundColor(.secondary)
-                    
-                Text(formatDate(picture.datetime))
-                    .foregroundColor(.secondary)
+            .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                self.weatherIconURL = URL(string: picture.weatherDetails.large_icon_url)
+                self.pictureURL = URL(string: EnvironmentConfig.baseURL + pictureBufferEndpoint + picture.fileName)
             }
-                
-            Spacer()
-
-            Button("Fermer") {
-                dismiss()
-            }
-            .buttonStyle(SecondaryButtonStyle())
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            self.weatherIconURL = URL(string: picture.weatherDetails.large_icon_url)
-            self.pictureURL = URL(string: EnvironmentConfig.baseURL + pictureBufferEndpoint + picture.fileName)
         }
     }
     
