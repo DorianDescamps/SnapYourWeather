@@ -20,13 +20,7 @@ struct SignUpView: View {
     var body: some View {
         VStack(spacing: 30) {
             setViewStep(for: currentStep)
-            
-            if (errorMessage != nil) {
-                Text(errorMessage!)
-                    .foregroundColor(.red)
-            }
         }
-        .padding()
         .navigationTitle("Inscription")
     }
     
@@ -34,7 +28,7 @@ struct SignUpView: View {
     private func setViewStep(for step: SignupStep) -> some View {
         switch step {
         case .createAccount:
-            StepEmailCheckView(email: $email) {
+            CreateAccountStepView(email: $email, errorMessage: $errorMessage) {
                 authViewModel.createAccount(email: email) { success, errorMessage in
                     if (success) {
                         currentStep = .requestTemporaryCode
@@ -45,8 +39,8 @@ struct SignUpView: View {
             }
             
         case .requestTemporaryCode:
-            StepRequestCodeView {
-                authViewModel.requestTemporaryCode(email: email) { success, datas, errorMessage in
+            RequestTemporaryCodeView (errorMessage: $errorMessage) {
+                authViewModel.requestTemporaryCode(email: email) { success, errorMessage in
                     if (success) {
                         currentStep = .setPassword
                     }
@@ -54,7 +48,7 @@ struct SignUpView: View {
             }
             
         case .setPassword:
-            StepSetPasswordView(email: $email, temporaryCode: $temporaryCode, password: $password) {
+            SetPasswordStepView(email: $email, temporaryCode: $temporaryCode, password: $password, errorMessage: $errorMessage) {
                 authViewModel.setPassword(email: email, temporaryCode: temporaryCode, password: password) { success, errorMessage in
                     if (success) {
                         currentStep = .finished
@@ -64,74 +58,114 @@ struct SignUpView: View {
             }
             
         case .finished:
-            StepFinishedView()
+            FinishedStepView()
         }
     }
 }
 
-struct StepEmailCheckView: View {
+struct CreateAccountStepView: View {
     @Binding var email: String
+    @Binding var errorMessage: String?
+    
     var onNext: () -> Void
     
     var body: some View {
-        VStack(spacing: 15) {
-            Text("Étape 1 : Votre email")
-            TextField("Email", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocapitalization(.none)
-            
-            Button("Vérifier l'email", action: onNext)
-                .buttonStyle(SecondaryButtonStyle())
+        VStack(alignment: .leading, spacing: 30) {
+            VStack(alignment: .leading, spacing: 15) {
+                Text("Adresse e-mail")
+                    .font(.headline)
+                
+                TextField("prenom.nom@u-picardie.fr", text: $email)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+                
+                if (errorMessage != nil) {
+                    Text(errorMessage!)
+                        .foregroundColor(.red)
+                }
+                
+                Button("Créer le compte", action: onNext)
+                    .buttonStyle(PrimaryButtonStyle())
+            }
         }
+        .padding()
     }
 }
 
-struct StepRequestCodeView: View {
+struct RequestTemporaryCodeView: View {
+    @Binding var errorMessage: String?
+    
     var onNext: () -> Void
     
     var body: some View {
-        VStack(spacing: 15) {
-            Text("Étape 2 : Envoyer le code temporaire")
-            Text("Un code de 6 chiffres vous sera envoyé par mail.")
+        VStack(alignment: .leading, spacing: 30) {
+            Text("Code temporaire par e-mail")
+                .font(.headline)
             
-            Button("Demander le code", action: onNext)
-                .buttonStyle(SecondaryButtonStyle())
+            if (errorMessage != nil) {
+                Text(errorMessage!)
+                    .foregroundColor(.red)
+            }
+            
+            Button("Recevoir le code temporaire par e-mail", action: onNext)
+                .buttonStyle(PrimaryButtonStyle())
         }
+        .padding()
     }
 }
 
-struct StepSetPasswordView: View {
+struct SetPasswordStepView: View {
     @Binding var email: String
     @Binding var temporaryCode: String
     @Binding var password: String
+    @Binding var errorMessage: String?
+    
     var onNext: () -> Void
     
     var body: some View {
-        VStack(spacing: 15) {
-            Text("Étape 3 : Saisir le code reçu par mail et choisir un mot de passe")
+        VStack(alignment: .leading, spacing: 30) {
+            VStack(alignment: .leading, spacing: 15) {
+                Text("Code temporaire reçu par e-mail")
+                    .font(.headline)
+                
+                TextField("XXXXXX", text: $temporaryCode)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .keyboardType(.numberPad)
+            }
+    
+            VStack(alignment: .leading, spacing: 15) {
+                Text("Mot de passe (8 caractères minimum)")
+                    .font(.headline)
+                
+                SecureField("TonSuperMotDePasse_", text: $password)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
             
-            TextField("Code à 6 chiffres", text: $temporaryCode)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .keyboardType(.numberPad)
+            if (errorMessage != nil) {
+                Text(errorMessage!)
+                    .foregroundColor(.red)
+            }
             
-            SecureField("Mot de passe (8 caractères min.)", text: $password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-            
-            Button("Créer le compte", action: onNext)
-                .buttonStyle(SecondaryButtonStyle())
+            Button("Définir le mot de passe", action: onNext)
+                .buttonStyle(PrimaryButtonStyle())
         }
+        .padding()
     }
 }
 
-struct StepFinishedView: View {
+struct FinishedStepView: View {
     var body: some View {
         VStack(spacing: 15) {
-            Text("Compte créé avec succès. Vous pouvez vous connecter.")
+            Text("Compte créé avec succès !")
+                .font(.headline)
             
             NavigationLink(value: "Login") {
                 Text("Se connecter")
-                    .buttonStyle(SecondaryButtonStyle())
+                    .buttonStyle(PrimaryButtonStyle())
             }
         }
+        .padding()
     }
 }

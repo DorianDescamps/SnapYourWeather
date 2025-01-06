@@ -1,103 +1,58 @@
 import Foundation
-import SwiftUI
 import Combine
+import SwiftUI
 
 class PicturesViewModel: ObservableObject {
-    
-    @Published var pictures: [Picture] = []
-    @Published var errorMessage: String = ""
-    
-    private let authViewModel: AuthViewModel
-    
-    init(authViewModel: AuthViewModel) {
-        self.authViewModel = authViewModel
+    // MARK: - API Endpoints
+    enum APIEndpoint: String {
+        case fetchPictures = "/pictures"
+        case fetchPictureBuffer = "/pictures/"
     }
-    
-    func fetchPictures() {
-        guard let token = authViewModel.authToken else {
-            self.errorMessage = "Token introuvable, veuillez vous reconnecter."
-            return
+
+    // MARK: - Méthode générique pour les requêtes réseau
+    private func performRequest(
+        method: String,
+        endpoint: APIEndpoint,
+        pathParameter: String? = nil,
+        completion: @escaping (Data?, HTTPURLResponse?, Error?) -> Void
+    ) {
+        let URL_ = URL(string: EnvironmentConfig.baseURL + endpoint.rawValue + (pathParameter ?? ""))!
+
+        var request = URLRequest(url: URL_)
+        request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let token = TokenManager.shared.getToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-        
-        guard let url = URL(string: EnvironmentConfig.baseURL + "/pictures") else {
-            self.errorMessage = "URL invalide."
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
+
+        URLSession.shared.dataTask(with: request) { body, response, error in
             DispatchQueue.main.async {
-                if let error = error {
-                    self.errorMessage = "Erreur réseau : \(error.localizedDescription)"
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse,
-                      let data = data else {
-                    self.errorMessage = "Réponse serveur invalide."
-                    return
-                }
-                
-                guard httpResponse.statusCode == 200 else {
-                    self.errorMessage = "Erreur inattendue (code \(httpResponse.statusCode))."
-                    return
-                }
-                
-                do {
-                    if let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                       let datas = jsonObject["datas"] as? [[String: Any]] {
-                        // Convertir JSON en tableau de Picture
-                        let jsonData = try JSONSerialization.data(withJSONObject: datas, options: [])
-                        let decodedPictures = try JSONDecoder().decode([Picture].self, from: jsonData)
-                        self.pictures = decodedPictures
-                    } else {
-                        self.errorMessage = "Format de réponse inattendu."
-                    }
-                } catch {
-                    self.errorMessage = "Impossible de parser la réponse JSON : \(error.localizedDescription)"
-                }
+                completion(body, response as? HTTPURLResponse, error)
             }
-        }.resume()
+        }
+        .resume()
     }
-    
-    func fetchPictureImage(fileName: String, completion: @escaping (Data?) -> Void) {
-        guard let token = authViewModel.authToken else {
-            self.errorMessage = "Token introuvable, veuillez vous reconnecter."
-            completion(nil)
-            return
-        }
-        
-        guard let url = URL(string: EnvironmentConfig.baseURL + "/pictures/\(fileName)") else {
-            self.errorMessage = "URL invalide pour la photo."
-            completion(nil)
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.errorMessage = "Erreur réseau pour l'image : \(error.localizedDescription)"
-                    completion(nil)
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse,
-                      let data = data,
-                      httpResponse.statusCode == 200 else {
-                    self.errorMessage = "Impossible de récupérer l'image (code ou réponse invalide)."
-                    completion(nil)
-                    return
-                }
-                
-                completion(data)
+
+    // MARK: - Récupérer les photos
+    func fetchPictures(completion: @escaping (Bool, [Picture]?, String?) -> Void) {
+        performRequest(method: "GET", endpoint: .fetchPictures) { data, response, error in
+            guard error == nil, let response = response else {
+                completion(false, nil, "Impossible d'obtenir une réponse valide du serveur.")
+                return
             }
-        }.resume()
+
+            switch response.statusCode {
+            case 200:
+                let body = try! JSONSerialization.jsonObject(with: data!, options: []) as! [String: Any]
+                let datas = body["datas"] as! [[String: Any]]
+                let array = try! JSONSerialization.data(withJSONObject: datas, options: [])
+                let pictures = try! JSONDecoder().decode([Picture].self, from: array)
+                
+                completion(true, pictures, nil)
+            default:
+                completion(false, nil, "Erreur inattendue (code \(response.statusCode)).")
+            }
+        }
     }
 }

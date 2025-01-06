@@ -2,9 +2,8 @@ import SwiftUI
 import MapKit
 
 struct MapView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
+    @StateObject private var picturesViewModel = PicturesViewModel()
     
-    @StateObject private var picturesVM: PicturesViewModel
     @State private var cameraPosition = MapCameraPosition.region(
         MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: 48.8566, longitude: 2.3522),
@@ -12,28 +11,26 @@ struct MapView: View {
         )
     )
     
+    @State private var pictures: [Picture] = []
     @State private var isDetailPresented: Bool = false
     @State private var pictureSelected: Picture? = nil
-    
-    init(authViewModel: AuthViewModel) {
-        _picturesVM = StateObject(wrappedValue: PicturesViewModel(authViewModel: authViewModel))
-    }
     
     var body: some View {
         ZStack {
             Map(position: $cameraPosition) {
-                ForEach(picturesVM.pictures) { picture in
-                    if let lat = Double(picture.latitude),
-                       let lon = Double(picture.longitude),
-                       let iconURL = URL(string: picture.weatherDetails.icon_url) {
-                        Annotation("", coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lon)) {
-                            AsyncImage(url: iconURL) { phase in
+                ForEach(pictures) { picture in
+                    if let latitude = Double(picture.latitude),
+                       let longitude = Double(picture.longitude),
+                       let weatherIconURL = URL(string: picture.weatherDetails.icon_url) {
+                        Annotation("Picture marker", coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude)) {
+                            AsyncImage(url: weatherIconURL) { phase in
                                 switch phase {
                                 case .empty:
                                     ProgressView()
                                         .frame(width: 40, height: 40)
                                 case .success(let image):
-                                    image.resizable()
+                                    image
+                                        .resizable()
                                         .scaledToFit()
                                         .frame(width: 40, height: 40)
                                 case .failure:
@@ -53,19 +50,19 @@ struct MapView: View {
                     }
                 }
             }
-            .mapControls {
-                MapUserLocationButton()
-                MapCompass()
-            }
             .mapStyle(.standard(elevation: .realistic))
         }
         .navigationBarTitle("Carte", displayMode: .inline)
         .onAppear {
-            picturesVM.fetchPictures()
+            picturesViewModel.fetchPictures() { success, pictures, _ in
+                if success {
+                    self.pictures = pictures!
+                }
+            }
         }
         .sheet(isPresented: $isDetailPresented) {
-            if let selected = pictureSelected {
-                PictureDetailView(picturesVM: picturesVM, picture: selected)
+            if let pictureSelected = pictureSelected {
+                PictureDetailView(picture: pictureSelected)
             }
         }
     }

@@ -3,8 +3,6 @@ import Combine
 import SwiftUI
 
 class AuthViewModel: ObservableObject {
-    @Published var authToken: String? = nil
-    
     private let userRepository: UserRepository
     
     // MARK: - API Endpoints
@@ -19,30 +17,24 @@ class AuthViewModel: ObservableObject {
     // MARK: - Initialisation
     init(userRepository: UserRepository = UserRepository()) {
         self.userRepository = userRepository
-        self.authToken = userRepository.getSavedToken()
     }
     
     // MARK: - Méthode générique pour les requêtes réseau
     private func performRequest(
-        endpoint: APIEndpoint,
         method: String,
-        token: String? = nil,
+        endpoint: APIEndpoint,
         body: [String: Any]? = nil,
         completion: @escaping (Data?, HTTPURLResponse?, Error?) -> Void
     ) {
-        guard let url = URL(string: EnvironmentConfig.baseURL + endpoint.rawValue) else {
-            completion(nil, nil, URLError(.badURL))
-            return
-        }
+        let URL_ = URL(string: EnvironmentConfig.baseURL + endpoint.rawValue)!
         
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: URL_)
         request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        if let token = token {
+        if let token = TokenManager.shared.getToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-        
-        //request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         if let body = body {
             request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
@@ -52,57 +44,52 @@ class AuthViewModel: ObservableObject {
             DispatchQueue.main.async {
                 completion(body, response as? HTTPURLResponse, error)
             }
-        }.resume()
+        }
+        .resume()
     }
     
     // MARK: - Créer un compte
     func createAccount(email: String, completion: @escaping (Bool, String?) -> Void) {
         let body = ["email_address": email]
         
-        performRequest(endpoint: .createAccount, method: "POST", body: body) { _, response, error in
-            if let error = error {
-                completion(false, "Erreur réseau : \(error.localizedDescription)")
-                return
-            }
-            //???
-            guard let httpResponse = response else {
-                completion(false, "Réponse invalide du serveur.")
+        performRequest(method: "POST", endpoint: .createAccount, body: body) { _, response, error in
+            guard error == nil, let response = response else {
+                completion(false, "Impossible d'obtenir une réponse valide du serveur.")
                 return
             }
             
-            switch httpResponse.statusCode {
+            switch response.statusCode {
             case 200:
                 completion(true, nil)
+            case 400:
+                completion(false, "Adresse e-mail invalide.")
             case 409:
-                completion(false, "Cet email est déjà utilisé.")
+                completion(false, "Adresse e-mail déjà utilisée.")
             default:
-                completion(false, "Erreur inattendue (code \(httpResponse.statusCode)).")
+                completion(false, "Erreur inattendue (code \(response.statusCode)).")
             }
         }
     }
     
     // MARK: - Demander un code temporaire
-    func requestTemporaryCode(email: String, completion: @escaping (Bool, [String: Any]?, String?) -> Void) {
+    func requestTemporaryCode(email: String, completion: @escaping (Bool, String?) -> Void) {
         let body = ["email_address": email]
         
-        performRequest(endpoint: .requestTemporaryCode, method: "POST", body: body) { _, response, error in
-            if let error = error {
-                completion(false, nil, "Erreur réseau : \(error.localizedDescription)")
+        performRequest(method: "POST", endpoint: .requestTemporaryCode, body: body) { _, response, error in
+            guard error == nil, let response = response else {
+                completion(false, "Impossible d'obtenir une réponse valide du serveur.")
                 return
             }
             
-            guard let httpResponse = response else {
-                completion(false, nil, "Réponse invalide du serveur.")
-                return
-            }
-            
-            switch httpResponse.statusCode {
+            switch response.statusCode {
             case 200:
-                completion(true, nil, nil)
-            case 404:
-                completion(false, nil, "Email non trouvé.")
+                completion(true, nil)
+            case 400:
+                completion(false, "Adresse e-mail invalide.")
+            case 401:
+                completion(false, "Adresse e-mail inconnue.")
             default:
-                completion(false, nil, "Erreur inattendue (code \(httpResponse.statusCode)).")
+                completion(false, "Erreur inattendue (code \(response.statusCode)).")
             }
         }
     }
@@ -115,127 +102,132 @@ class AuthViewModel: ObservableObject {
             "password": password
         ]
         
-        performRequest(endpoint: .setPassword, method: "POST", body: body) { _, response, error in
-            if let error = error {
-                completion(false, "Erreur réseau : \(error.localizedDescription)")
+        performRequest(method: "POST", endpoint: .setPassword, body: body) { _, response, error in
+            guard error == nil, let response = response else {
+                completion(false, "Impossible d'obtenir une réponse valide du serveur.")
                 return
             }
             
-            guard let httpResponse = response else {
-                completion(false, "Réponse invalide du serveur.")
-                return
-            }
-            
-            switch httpResponse.statusCode {
+            switch response.statusCode {
             case 200:
                 completion(true, nil)
+            case 400:
+                completion(false, "Code temporaire ou mot de passe invalide.")
+            case 401:
+                completion(false, "Adresse e-mail inconnue.")
             case 403:
                 completion(false, "Code temporaire invalide.")
-            case 400:
-                completion(false, "Mot de passe non conforme (8 caractères minimum).")
             default:
-                completion(false, "Erreur inattendue (code \(httpResponse.statusCode)).")
+                completion(false, "Erreur inattendue (code \(response.statusCode)).")
             }
         }
     }
     
     // MARK: - Obtenir un jeton d'authentification
-    func getToken(email: String, password: String, completion: @escaping (Bool, [String: Any]?, String?) -> Void) {
+    func getToken(email: String, password: String, completion: @escaping (Bool, String?) -> Void) {
         let body = [
             "email_address": email,
             "password": password
         ]
         
-        performRequest(endpoint: .getToken, method: "POST", body: body) { data, response, error in
-            if let error = error {
-                completion(false, nil, "Erreur réseau : \(error.localizedDescription)")
+        performRequest(method: "POST", endpoint: .getToken, body: body) { data, response, error in
+            guard error == nil, let response = response, let data = data else {
+                completion(false, "Impossible d'obtenir une réponse valide du serveur.")
                 return
             }
             
-            guard let httpResponse = response, let data = data else {
-                completion(false, nil, "Réponse invalide du serveur.")
-                return
-            }
-            
-            switch httpResponse.statusCode {
+            switch response.statusCode {
             case 200:
                 let body = try! JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
                 let datas = body["datas"] as! [String: Any]
-                completion(true, datas, nil)
-            case 403:
-                completion(false, nil, "Mot de passe invalide.")
+                let token = datas["value"] as! String
+                
+                TokenManager.shared.persistToken(token: token)
+                
+                completion(true, nil)
+            case 400:
+                completion(false, "Adresse e-mail ou mot de passe invalide.")
             case 401:
-                completion(false, nil, "Email invalide.")
+                completion(false, "Adresse e-mail inconnue.")
+            case 403:
+                completion(false, "Mot de passe invalide.")
             default:
-                completion(false, nil, "Erreur inattendue (code \(httpResponse.statusCode)).")
+                completion(false, "Erreur inattendue (code \(response.statusCode)).")
+            }
+        }
+    }
+    
+    // MARK: - Supprimer le token
+    func expireToken(completion: @escaping (Bool, String?) -> Void) {
+        performRequest(method: "DELETE", endpoint: .getToken) { _, response, error in
+            guard error == nil, let response = response else {
+                completion(false, "Impossible d'obtenir une réponse valide du serveur.")
+                return
+            }
+            
+            switch response.statusCode {
+            case 200:
+                TokenManager.shared.unpersistToken()
+                
+                completion(true, nil)
+            case 401:
+                completion(false, "Token invalide.")
+            case 403:
+                completion(false, "Token expiré.")
+            default:
+                completion(false, "Erreur inattendue (code \(response.statusCode)).")
             }
         }
     }
     
     // MARK: - Récupérer les détails de l'utilisateur connecté
     func fetchUserDetails(completion: @escaping (Bool, [String: Any]?, String?) -> Void) {
-        guard let token = self.authToken else {
-            completion(false, nil, "Token introuvable. Veuillez vous reconnecter.")
-            return
-        }
-
-        performRequest(endpoint: .userDetails, method: "GET", token: token) { data, response, error in
-            if let error = error {
-                completion(false, nil, "Erreur réseau : \(error.localizedDescription)")
+        performRequest(method: "GET", endpoint: .userDetails) { data, response, error in
+            guard error == nil, let response = response else {
+                completion(false, nil, "Impossible d'obtenir une réponse valide du serveur.")
                 return
             }
 
-            guard let httpResponse = response, let data = data else {
-                completion(false, nil, "Réponse serveur invalide.")
-                return
-            }
-
-            switch httpResponse.statusCode {
+            switch response.statusCode {
                 case 200:
-                    let body = try! JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+                    let body = try! JSONSerialization.jsonObject(with: data!, options: []) as! [String: Any]
                     let datas = body["datas"] as! [String: Any]
+                    
                     completion(true, datas, nil)
+                case 401:
+                    completion(false, nil, "Token invalide.")
+                case 403:
+                    completion(false, nil, "Token expiré.")
                 default:
-                    completion(false, nil, "Erreur inattendue (code \(httpResponse.statusCode)).")
+                    completion(false, nil, "Erreur inattendue (code \(response.statusCode)).")
                 }
+            }
         }
-    }
 
     // MARK: - Modifier les détails de l'utilisateur connecté
     func setUserDetails(userName: String, completion: @escaping (Bool, String?) -> Void) {
-        guard let token = self.authToken else {
-            completion(false, "Token introuvable, veuillez vous reconnecter.")
-            return
-        }
-
         let body = ["user_name": userName]
-        performRequest(endpoint: .userDetails, method: "POST", token: token, body: body) { _, response, error in
-            if let error = error {
-                completion(false, "Erreur réseau : \(error.localizedDescription)")
+            
+        performRequest(method: "POST", endpoint: .userDetails, body: body) { _, response, error in
+            guard error == nil, let response = response else {
+                completion(false, "Impossible d'obtenir une réponse valide du serveur.")
                 return
             }
 
-            guard let httpResponse = response else {
-                completion(false, "Réponse serveur invalide.")
-                return
-            }
-
-            switch httpResponse.statusCode {
+            switch response.statusCode {
                 case 200:
                     completion(true, nil)
                 case 400:
                     completion(false, "Nom d'utilisateur invalide. Utilisez uniquement des lettres, chiffres et underscores.")
+                case 401:
+                    completion(false, "Token invalide.")
+                case 403:
+                    completion(false, "Token expiré.")
                 case 409:
                     completion(false, "Nom d'utilisateur déjà utilisé.")
                 default:
-                    completion(false, "Erreur inattendue (code \(httpResponse.statusCode)).")
+                    completion(false, "Erreur inattendue (code \(response.statusCode)).")
             }
         }
-    }
-
-    // MARK: - Déconnexion
-    func logout() {
-        self.authToken = nil
-        userRepository.removeToken()
     }
 }

@@ -3,6 +3,7 @@ import UIKit
 
 struct UserNameAlert: UIViewControllerRepresentable {
     @EnvironmentObject var authViewModel: AuthViewModel
+    
     @Binding var isPresented: Bool
 
     func makeUIViewController(context: Context) -> UIViewController {

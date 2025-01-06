@@ -2,10 +2,12 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    
     @Environment(\.presentationMode) var presentationMode
 
     @State private var email: String = ""
     @State private var userName: String = ""
+    @State private var errorMessage: String? = nil
 
     var body: some View {
         NavigationStack {
@@ -16,38 +18,51 @@ struct SettingsView: View {
                             .font(.headline)
                         Text(email)
                     }
+                    
                     VStack(alignment: .leading) {
                         Text("Nom d'utilisateur")
                             .font(.headline)
                         Text(userName)
                     }
-                }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Button("Se déconnecter") {
-                    authViewModel.logout()
-                    presentationMode.wrappedValue.dismiss()
-                }
-                    .font(.title2)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.red)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-                .padding()
-                .navigationTitle("Paramètres")
-                .onAppear {
-                    authViewModel.fetchUserDetails { success, datas, errorMessage in
-                        if (success) {
-                            self.email = datas!["email_address"] as! String
-                            self.userName = datas!["user_name"] as! String
-                        } else {
-                            authViewModel.logout()
-                            presentationMode.wrappedValue.dismiss()
+                    
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                    }
+                    
+                    Button("Se déconnecter") {
+                        authViewModel.expireToken { success, error in
+                            if success {
+                                presentationMode.wrappedValue.dismiss()
+                            } else if let error = error {
+                                self.errorMessage = error
+                            }
                         }
                     }
+                    .buttonStyle(PrimaryButtonStyle(backgroundColor: .red))
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Spacer()
+
+                Button("Fermer") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .buttonStyle(SecondaryButtonStyle())
+            }
+            .navigationTitle("Paramètres")
+            .padding()
+            .onAppear {
+                authViewModel.fetchUserDetails { success, datas, error in
+                    if success {
+                        self.email = datas!["email_address"] as! String
+                        self.userName = datas!["user_name"] as! String
+                    } else {
+                        TokenManager.shared.unpersistToken()
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+            }
         }
     }
 }
