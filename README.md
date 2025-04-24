@@ -98,13 +98,11 @@ Le projet suit le pattern **MVVM** combiné à une séparation claire des respon
    ![Permission localisation](SnapYourWeather/screenshots/2.png)
 3. **Vue Caméra** : capture en temps réel via AVFoundation.  
    ![Vue Caméra](SnapYourWeather/screenshots/3.jpg)
-4. **Capture réalisée** : image affichée avec option de prévisualisation.  
-   ![Capture prévisualisée](SnapYourWeather/screenshots/5.png)
-5. **Envoi de la photo** : bouton « Envoyer » déclenche l’upload multipart.  
-   ![Envoi photo](SnapYourWeather/screenshots/5.png)
-6. **Carte interactive** : toutes les photos publiées s’affichent avec icônes météo.  
+4. **Capture réalisée** : image affichée avec option de prévisualisation, bouton « Envoyer » déclenche l’upload multipart.  
+   ![Capture prévisualisée](SnapYourWeather/screenshots/4.png)
+5. **Carte interactive** : toutes les photos publiées s’affichent avec icônes météo.  
    ![Vue Carte](SnapYourWeather/screenshots/6.png)
-7. **Détail d’une photo** : affichage agrandi avec météo, date et utilisateur.  
+6. **Détail d’une photo** : affichage agrandi avec météo, date et utilisateur.  
    ![Détail Photo](SnapYourWeather/screenshots/7.png)
 
 ---
