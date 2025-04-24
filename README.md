@@ -93,23 +93,23 @@ Le projet suit le pattern **MVVM** combiné à une séparation claire des respon
 ## Workflow visuel
 
 1. **Inscription** : saisie de l'adresse e-mail et création du compte.  
-   ![Écran d’inscription](screenshots/1.png)
+   ![Écran d’inscription](SnapYourWeather/screenshots/1.png)
 2. **Autorisation de localisation** : prompt iOS pour accéder à la position.  
-   ![Permission localisation](screenshots/2.png)
+   ![Permission localisation](SnapYourWeather/screenshots/2.png)
 3. **Vue Caméra** : capture en temps réel via AVFoundation.  
-   ![Vue Caméra](screenshots/3.jpg)
+   ![Vue Caméra](SnapYourWeather/screenshots/3.jpg)
 4. **Capture réalisée** : image affichée avec option de prévisualisation.  
-   ![Capture prévisualisée](screenshots/5.png)
+   ![Capture prévisualisée](SnapYourWeather/screenshots/5.png)
 5. **Envoi de la photo** : bouton « Envoyer » déclenche l’upload multipart.  
-   ![Envoi photo](screenshots/5.png)
+   ![Envoi photo](SnapYourWeather/screenshots/5.png)
 6. **Carte interactive** : toutes les photos publiées s’affichent avec icônes météo.  
-   ![Vue Carte](screenshots/6.png)
+   ![Vue Carte](SnapYourWeather/screenshots/6.png)
 7. **Détail d’une photo** : affichage agrandi avec météo, date et utilisateur.  
-   ![Détail Photo](screenshots/7.png)
+   ![Détail Photo](SnapYourWeather/screenshots/7.png)
 
 ---
 
-## Licence
+## Auteurs
 
-MIT © Dorian Descamps
-
+- Théo Bontemps
+- Dorian Descamps
